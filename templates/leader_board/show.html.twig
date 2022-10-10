@@ -1,0 +1,157 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <h2>
+                {{ wod.createdAt.format('m/d/Y') }}<br>
+                Reva Leader Board
+                <a href="#list-stuff-form" class="btn btn-md btn-success pull-right">
+                    <span class="fa fa-plus"></span> Add
+                </a>
+            </h2>
+
+            <table class="table table-striped js-wod-log-table" >
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Score</th>
+                    <th>Comments</th>
+                    <th>Rx</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+            {# TODO move to external form  #}
+            <br>
+            <div class="form-group">
+                <form class="form-inline js-new-wod-form" novalidate data-url="../api/leaderboards">
+                    <div><label for="date">Date</label> <input type="date" name="date" value="{{ "now"|date("Y-m-d") }}" class="form-control"></div><br>
+                     <input type="hidden" name="wod" value="{{ "now"|date("Y-m-d") }}" class="form-control">
+                    <div><label for="name">Name</label> <input type="text" name="name" placeholder="Name" class="form-control"></div><br>
+                    <div><label for="time">Score</label> <input type="text" name="score" placeholder="Score" class="form-control"></div><br>
+                    <div><label for="comments">Comments</label> <input type="text" name="comments" placeholder="Comments" class="form-control"></div><br>
+                    <div><label for="rx">Rx</label> <input type="checkbox" name="rx" class="form-control"></div><br>
+                    {#                    <div><label for="date">Date</label> <input type="text" name="date" placeholder="Date" class="form-control"></div><br>#}
+                    <div><div class="btn btn-primary">Submit</div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script>
+        // TODO move to external file
+        // TODO refactor to object
+        $(document).ready(function() {
+            var $table = $('.js-wod-log-table');
+
+            // loadWod();
+            function convertFormToJSON(form) {
+                const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
+                const json = {};
+                $.each(array, function () {
+                    json[this.name] = this.value || "";
+                });
+                return json;
+            }
+
+            $('.js-new-wod-form').unbind('click').find('.btn-primary').on('click', function (e) {
+                e.preventDefault();
+
+                var newLeaderboardUrl = $(this).closest('form').data('url');
+                var $form = $(this).closest('form');
+
+                var json = convertFormToJSON($form);
+                // json.wod = parseInt($form.find('#wod_id').val());
+                // json.owner = "/api/users/1"; // TODO get logged in user
+
+                var self = this;
+                $.ajax({
+                    url: newLeaderboardUrl,
+                    method: 'POST',
+                    dataType: 'json',
+                    data: JSON.stringify(json),
+                    contentType: 'application/json',
+                }).then(function (data) {
+                    $table.find('tr').remove();
+                    $table.append('<tr class="loader"><td colspan="4" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
+                    // console.log(data);
+                    // get new id
+                    loadLeaderboard();
+                })
+            });
+
+            var $form = $table.closest('form');
+
+            // todo find leaderboard by date
+            var loadLeaderboard = function (e) {
+                $table.append('<tr class="loader"><td colspan="4" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
+                $.ajax({
+                    url: '../api/leaderboards/{{ leaderboard.id }}.json',
+                    method: 'GET',
+                }).then(function(dat) {
+                    $('tr.loader').remove();
+
+                    // dat.dateCreated = new Date(dat.dateCreated);
+                    console.log(dat)
+                    var html = '<tr data-url="leaderboards/' + dat.id + '"><td>'+dat.name.toString()+'</td><td>'+ dat.score +'</td>' +
+                        '<td>'+ (dat.comments ? dat.comments : '') +'</td><td>'+ (dat.rx ? dat.rx : '') +'</td>' +
+                        '<td><a href="#"><span class="fa fa-trash js-delete-wod" data-url="api/leaderboards/' + dat.id + '"></span></a></td></tr>';
+                    $table.append(html);
+
+                });
+            };
+
+            loadLeaderboard();
+
+
+
+            var handleRepLogDelete = function (e) {
+                e.preventDefault();
+                var $link = $(e.currentTarget);
+                var deleteUrl = $link.data('url');
+
+                $link.addClass('text-danger');
+                $link.find('.fa')
+                    .removeClass('fa-trash')
+                    .addClass('fa-spinner')
+                    .addClass('fa-spin');
+
+                var $row = $link.closest('tr');
+                $.ajax({
+                    url: deleteUrl,
+                    method: 'DELETE',
+                }).then(function() {
+                    $row.fadeOut();
+                }).catch(function (arg) {
+                });
+            };
+
+            console.log($('.fa-trash'));
+
+            var deleteScore = function () {
+                $('.fa-trash').on('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleRepLogDelete(e);
+                });
+            }
+
+            $table.on(
+                'click',
+                'tbody tr',
+                function (e) {
+                    // e.preventDefault();
+                    var $link = $(e.currentTarget);
+                    var wodUrl = $link.data('url');
+                    console.log($link, wodUrl);
+                    window.location.href = wodUrl;
+                }
+            );
+        });
+    </script>
+{% endblock %}

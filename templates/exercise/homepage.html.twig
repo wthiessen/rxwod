@@ -1,0 +1,30 @@
+<div class="container">
+    <div class="row">
+        <h1>Exercises</h1>
+        {% for exercise in exercises %}
+            <div class="col-12 mb-3">
+                <div class="q-container p-4">
+                    <div class="row">
+                        <div class="col">
+                            <a class="q-title" href="{{ path('app_exercise_show', { id: exercise.id }) }}">{{ exercise.name }}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        <br>
+        <div class="mt-3">
+            <form action="{{ path('app_new_exercise') }}" method="POST">
+                <div><label for="name">Name </label><input type="text" name="name"></div>
+{#                <div><label for="name">Type </label><input type="text" name="type"></div>#}
+                <label for="type">Type </label><select name="type">
+                    <option value="">- Pick One -</option>
+                    {% for exerciseType in exerciseTypes %}
+                        <option value="{{ exerciseType.id }}">{{ exerciseType.name }}</option>
+                    {% endfor %}
+                </select>
+                <div><button type="submit">Submit</button></div>
+            </form>
+        </div>
+    </div>
+</div>

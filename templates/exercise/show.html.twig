@@ -1,0 +1,22 @@
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="my-4">Exercise: {{ exercise.name }}</h2>
+                <div style="box-shadow: 2px 3px 9px 4px rgba(0,0,0,0.04);">
+                    <div class="q-container-show p-4">
+                        <div class="row">
+                            <div class="col">
+                                <div class="q-display p-3">
+                                    <i class="fa fa-quote-left mr-3"></i>
+                                    <p class="d-inline">Type: {{ exercise.type }}</p>
+                                    <p class="d-inline">Created: {{ exercise.createdAt|ago }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

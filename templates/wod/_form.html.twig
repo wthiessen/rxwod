@@ -1,0 +1,39 @@
+<form class="form-inline js-new-rep-log-form" novalidate>
+    <div class="form-group">
+        <label class="sr-only control-label required" for="rep_log_item">
+            What did you lift?
+        </label>
+        {# <select id="rep_log_item"
+                name="item"
+                required="required"
+                class="form-control">
+            <option value="" selected="selected">What did you lift?</option>
+            <option value="cat">Cat</option>
+            <option value="fat_cat">Big Fat Cat</option>
+            <option value="laptop">My Laptop</option>
+            <option value="coffee_cup">Coffee Cup</option>
+        </select></div> #}
+
+    <div class="form-group">
+        <label class="sr-only control-label required" for="name">
+            Name/Date
+        </label>
+        <input type="text" id="name"
+               name="name" required="required"
+               placeholder="Name/Date"
+               class="form-control"/>
+        <label class="sr-only control-label required" for="rounds">
+            rounds
+        </label>               
+        <input type="text" id="rounds"
+               name="rounds" required="required"
+               placeholder="rounds "
+               class="form-control"/>
+        <input type="text" id="time_cap"
+               name="time_cap" required="required"
+               placeholder="Time Cap "
+               class="form-control"/>
+    </div>
+
+    <button type="submit" class="btn btn-primary">I Lifted it!</button>
+</form>

@@ -1,0 +1,180 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <h2>
+               <span class="add-wod-form">Wods</span>
+                <span class="add-wod-form-2 hidden">Add Wod</span>
+                <a href="#list-stuff-form" class="btn btn-md btn-success pull-right add-wod-form">
+                    <span class="fa fa-plus"></span> Add
+                </a>
+            </h2>
+
+            <table class="table table-striped js-wod-log-table" >
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Wod</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+            {# {{ include('wod/_form.html.twig') }} #}
+{# TODO add calendar widget#}
+{# TODO pagination#}
+{# TODO view, addedit#}
+{# TODO move to external form  #}
+{#                        TODO Only allowed<br>#}
+            <br>
+            <div class="form-group add-wod hidden">
+                <form class="form-inline js-new-wod-form" data-url="api/wods">
+                    <div><label for="date">Date</label> <input class="createdAt" type="date" name="createdAt" id="createdAt" value="{{ "now"|date("Y-m-d") }}" class="form-control" required></div><br>
+                    <div><label for="wod">Wod </label> <textarea style="width: 33%; height: 250px; display: block; resize: vertical;" name="wod" required></textarea></div>
+                    <br>
+                    <div><div class="btn btn-primary">Submit</div>
+                </form>
+            </div>
+        </div>
+    </div>
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script>
+            // TODO move to external file
+            // TODO refactor to object
+
+            $(document).ready(function() {
+                var $table = $('.js-wod-log-table');
+
+                function convertFormToJSON(form) {
+                    const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
+                    const json = {};
+                    $.each(array, function () {
+                        json[this.name] = this.value || "";
+                    });
+                    return json;
+                }
+
+
+                $('.add-wod-form').on('click', function (e) {
+                    $('.add-wod.hidden:first').removeClass("hidden");
+                    $('.js-wod-log-table').addClass("hidden");
+                    $('.add-wod-form').addClass("hidden");
+                    $('.add-wod-form-2').removeClass("hidden");
+                    console.log('add wod');
+                });
+
+                $('.js-new-wod-form').unbind('click').find('.btn-primary').on('click', function (e) {
+                    e.preventDefault();
+
+                    var newWodUrl = $(this).closest('form').data('url');
+                    var $form = $(this).closest('form');
+
+                    var json = convertFormToJSON($form);
+                    var self = this;
+                    $.ajax({
+                        url: newWodUrl,
+                        method: 'POST',
+                        dataType: 'json',
+                        data: JSON.stringify(json),
+                        contentType: 'application/json',
+                        success: function(result){
+                            $table.find('tr').remove();
+                            $table.append('<tr class="loader"><td colspan="3" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
+                            loadWods();
+
+                            $('.add-wod').addClass("hidden");
+                            $('.js-wod-log-table.hidden:first').removeClass("hidden");
+                            $('.add-wod-form').removeClass("hidden");
+                            $('.add-wod-form-2').addClass("hidden");
+                        },
+                        error: function(request,status,errorThrown) {
+                            console.log(request.responseJSON.violations);
+                        }
+                    });
+                    //     .then(function (data) {
+                    //     $table.find('tr').remove();
+                    //     $table.append('<tr class="loader"><td colspan="3" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
+                    //     loadWods();
+                    // })
+                });
+
+                var $form = $table.closest('form');
+
+                var loadWods = function (e) {
+                    $table.append('<tr class="loader"><td colspan="3" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
+
+                    console.log($('.createdAt'));
+
+                    var dateFilter = document.getElementById('createdAt').getAttribute('value');
+                    $.ajax({
+                        // url: 'api/wods.json?createdAt=' + dateFilter,
+                        url: 'api/wods.json',
+                        method: 'GET',
+                    }).then(function(data) {
+                        $('tr.loader').remove();
+                        // console.log(data)
+                        $.each(data, function(d, dat) {
+                            dat.createdAt = dat.createdAt.split('T')[0];
+                            // console.log(dat.createdAt);
+
+                            var html = '<tr data-url="wod/' + dat.id + '">' +
+                                '<td>'+ dat.createdAt +'</td>' +
+                                '<td>'+ dat.wod.substring(0,110) +'</td>' +
+                                '<td><a href="#"><span class="fa fa-trash js-delete-wod" data-url="api/wods/' + dat.id + '"></span></a></td></tr>';
+                            $table.append(html);
+                        });
+                        deleteWod();
+                    });
+                };
+
+                loadWods();
+
+                var handleRepLogDelete = function (e) {
+                    e.preventDefault();
+                    var $link = $(e.currentTarget);
+                    var deleteUrl = $link.data('url');
+
+                    $link.addClass('text-danger');
+                    $link.find('.fa')
+                        .removeClass('fa-trash')
+                        .addClass('fa-spinner')
+                        .addClass('fa-spin');
+
+                    var $row = $link.closest('tr');
+                    $.ajax({
+                        url: deleteUrl,
+                        method: 'DELETE',
+                    }).then(function() {
+                        $row.fadeOut();
+                    }).catch(function (arg) {
+                    });
+                };
+
+                    // console.log($('.fa-trash'));
+
+                var deleteWod = function () {
+                    $('.fa-trash').on('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRepLogDelete(e);
+                    });
+                }
+
+                $table.on(
+                    'click',
+                    'tbody tr',
+                    function (e) {
+                        // e.preventDefault();
+                        var $link = $(e.currentTarget);
+                        var wodUrl = $link.data('url');
+                        // console.log($link, wodUrl);
+                        window.location.href = wodUrl;
+                    }
+                );
+            });
+        </script>
+{% endblock %}

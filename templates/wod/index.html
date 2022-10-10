@@ -1,0 +1,25 @@
+<html lang="en">
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div ng-controller="WodListController">
+        {{ test }}
+    </div>
+</body>
+</html>
+<script>
+    // TODO move to external file
+    // TODO refactor to object
+    var myApp = angular.module('myApp',[]);
+
+    myApp.controller('WodListController', ['$scope', function($scope) {
+
+        $scope.test = 'TESTSTSTSSD';
+
+        console.log($scope.test);
+        // $scope.double = function(value) { return value * 2; };
+    }]);
+</script>

@@ -1,0 +1,213 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="q-container-show p-4">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="q-container-show q-display p-3">
+                                <h2>
+                                    Wod {{ wod.createdAt|date("Y-m-d") }}
+                                    <a href="edit/{{ wod.id }}" class="btn btn-md btn-success pull-right">
+                                        <span class="fa fa-edit"></span> Edit
+                                    </a>
+                                </h2>
+{#                              TODO edit wod if owner#}
+                                <br>
+                                    {{ wod.wod|markdown }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <h2>My Score</h2>
+{#                                                                    TODO fix formatting <br>#}
+{#                                                                    TODO add dropdown of past names <br>#}
+{#                                                                    TODO if score for name/user true, hide form <br>#}
+{#                                                                    TODO validation <br>#}
+                            <div class="form-group">
+                                <form class="form-inline js-new-wod-form" data-url="../api/leaderboards">
+                                    <table class="table table-stripe">
+                                        <tr>
+                                            <td><label for="date">Date</label></td>
+                                            <td><input type="date" name="date" value="{{ "now"|date("Y-m-d") }}" class="form-control" required></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label for="name">Name</label></td>
+                                            <td>
+                                                <select name="name_dropdown" id="name_dropdown">
+                                                    <option value="">-</option>
+                                                    {% for name in userNames %}
+{#                                                        {{ name }}#}
+                                                        <option value="{{ name }}">{{ name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <input type="text" name="name" placeholder="Name" class="form-control" required>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><label for="time">Score</label></td>
+                                            <td><input type="text" name="score" placeholder="Score" class="form-control" required></td>
+                                        </tr>
+                                        <tr>
+                                            <td> <label for="comments">Comments</label></td>
+                                            <td><textarea name="comments"  cols="30" rows="5"></textarea></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="vertical-align: middle;"><label for="rx">Rx</label></td>
+                                            <td style="vertical-align: middle;"><input type="checkbox" name="rx" class="form-control"></td>
+                                        </tr>
+                                    </table>
+                                    <input type="hidden" name="wod" value="{{ wod.id }}" class="form-control">
+                                    <div><div class="btn btn-primary">Submit</div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-10">
+                <h2>Leaderboard</h2>
+                {#                                        TODO if owner or admin allow delete <br>#}
+                {#                                        TODO Edit <br>#}
+                {#                                        TODO APIify#}
+                <table class="table js-wod-score-table">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Score</th>
+                        <th>Comments</th>
+                        <th>Rx</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <br>
+    </div>
+    {% block javascripts %}
+        {{ parent() }}
+        <script>
+            $(document).ready(function() {
+                var $table = $('.js-wod-score-table');
+
+                function convertFormToJSON(form) {
+                    const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
+                    const json = {};
+                    $.each(array, function () {
+                        json[this.name] = this.value || "";
+                    });
+                    return json;
+                }
+
+                $('.js-new-wod-form').unbind('click').find('.btn-primary').on('click', function (e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    var newLeaderboardUrl = $(this).closest('form').data('url');
+                    var $form = $(this).closest('form');
+
+                    var json = convertFormToJSON($form);
+
+                    json.wod = parseInt(json.wod);
+                    json.rx = json.rx == 'on' ? 1 : 0;
+
+                    if (json.name_dropdown != '' && json.name == '') {
+                        json.name = json.name_dropdown
+                    }
+                    console.log(json);
+
+                    var self = this;
+                    $.ajax({
+                        url: newLeaderboardUrl,
+                        method: 'POST',
+                        dataType: 'json',
+                        data: JSON.stringify(json),
+                        contentType: 'application/json',
+                    }).then(function (data) {
+                        // $table.find('tr').remove();
+                        loadLeaderboard();
+                    })
+                });
+
+                var loadLeaderboard = function () {
+                    if ($('.js-wod-score-table').find('tr.loader').length > 0) {
+                        return;
+                    }
+
+                    $table.append('<tr class="loader"><td colspan="5" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
+
+                    $.ajax({
+                        url: '../api/leaderboards.json?wod=' + {{ wod.id }},
+                        method: 'GET',
+                    }).then(function(data) {
+                        $('tr.loader').remove();
+
+                        $.each(data, function(d, dat) {
+                            dat.dateCreated = new Date(dat.dateCreated);
+
+                            console.log(dat.dateCreated);
+
+                            var html = '<tr data-url="../leaderboards/edit/' + dat.id + '"><td>'+dat.name +'</td><td>'+ dat.score +'</td>' +
+                                '<td>'+ (dat.comments ? dat.comments : '') +'</td><td>'+ (dat.rx ? 'Yes' : 'No') +'</td><td>'+ dat.dateCreated.toDateString() +'</td>' +
+                                '<td><a href="#"><span class="fa fa-trash js-delete-wod" data-url="../api/leaderboards/' + dat.id + '"></span></a></td></tr>';
+                            $table.append(html);
+
+                        });
+                        deleteWod();
+                    });
+                };
+
+                loadLeaderboard();
+
+                var handleDeleteLeaderBoard = function (e) {
+                    e.preventDefault();
+                    var $link = $(e.currentTarget);
+                    var deleteUrl = $link.data('url');
+
+                    $link.addClass('text-danger');
+                    $link.find('.fa')
+                        .removeClass('fa-trash')
+                        .addClass('fa-spinner')
+                        .addClass('fa-spin');
+
+                    var $row = $link.closest('tr');
+                    $.ajax({
+                        url: deleteUrl,
+                        method: 'DELETE',
+                    }).then(function() {
+                        $row.fadeOut();
+                    }).catch(function (arg) {
+                    });
+                };
+
+                var deleteWod = function () {
+                    $('.fa-trash').on('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDeleteLeaderBoard(e);
+                    });
+                }
+
+                $table.on(
+                    'click',
+                    'tbody tr',
+                    function (e) {
+                        // e.preventDefault();
+                        var $link = $(e.currentTarget);
+                        var scoreEditUrl = $link.data('url');
+                        // console.log($link, scoreEditUrl);
+                        window.location.href = scoreEditUrl;
+                    }
+                );
+                // }
+            });
+        </script>
+    {% endblock %}
+{% endblock %}
