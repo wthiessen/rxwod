@@ -10,6 +10,9 @@
                             <div class="q-container-show q-display p-3">
                                 <h2>
                                     Wod {{ wod.createdAt|date("Y-m-d") }}
+                                    <a href="{{ wod.id + 1 }}" class="btn btn-md btn-info pull-right">
+                                        Next Wod <span class="fa fa-angle-right"></span>
+                                    </a>
                                     <a href="edit/{{ wod.id }}" class="btn btn-md btn-success pull-right">
                                         <span class="fa fa-edit"></span> Edit
                                     </a>
@@ -64,7 +67,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

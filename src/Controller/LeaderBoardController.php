@@ -45,7 +45,7 @@ class LeaderBoardController extends AbstractController
     public function show($id, LeaderboardRepository $leaderboardRepository, WodRepository $wodRepository, MarkdownParserInterface $markdownParser)
     {
         /** @var Leaderboard|null $leaderboard */
-        $leaderboard = $leaderboardRepository->findBy(['id' =>$id, ['score' => 'ASC']]);
+        $leaderboard = $leaderboardRepository->findBy(['id' =>$id, ['createdAt' => 'DESC']]);
 
         /** @var Wod|null $wod */
         $wod = $wodRepository->find($leaderboard->getWod());

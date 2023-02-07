@@ -1,0 +1,51 @@
+
+<template>
+    <div>
+        <form @submit.prevent="addRecord">
+            <div>
+                <label for="exercise">Exercise:</label>
+                <input type="text" id="exercise" v-model="newRecord.exercise" />
+            </div>
+            <div>
+                <label for="repScheme">Rep Scheme:</label>
+                <input type="text" id="repScheme" v-model="newRecord.repScheme" />
+            </div>
+            <div>
+                <label for="weight">Weight:</label>
+                <input type="number" id="weight" v-model="newRecord.weight" />
+            </div>
+            <div>
+                <label for="comment">Comment:</label>
+                <input type="text" id="comment" v-model="newRecord.comment" />
+            </div>
+            <button type="submit">Add Record</button>
+        </form>
+    </div>
+</template>
+
+<script>
+    import axios from "axios";
+
+    export default {
+        data() {
+            return {
+                newRecord: {
+                    exercise: "",
+                    repScheme: "",
+                    weight: 0,
+                    comment: ""
+                }
+            };
+        },
+        methods: {
+            async addRecord() {
+                try {
+                    const response = await axios.post("/api/lift_records", this.newRecord);
+                    console.log(response.data);
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        }
+    };
+</script>

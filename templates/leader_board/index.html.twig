@@ -10,6 +10,8 @@
                 </a>
             </h2>
                 TODO show today's or last day's scores
+                TODO add Users
+                    chat feature
 
             <table class="table table-striped js-wod-log-table" >
                 <thead>
@@ -92,9 +94,14 @@
             var loadLeaderboard = function (e) {
                 $table.append('<tr class="loader"><td colspan="6" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
                 $.ajax({
-                    url: 'api/leaderboards.json?dateCreated=2022-10-09',
+                    url: 'api/leaderboards.json', // ?dateCreated=2022-10-09
                     method: 'GET',
                 }).then(function(data) {
+
+                    console.log(data);
+
+                    data.reverse();
+
                     $('tr.loader').remove();
                     console.log(data)
                     $.each(data, function(d, dat) {
