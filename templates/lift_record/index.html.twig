@@ -5,7 +5,7 @@
         <div class="row">
             <h2>
                 <span class="add-lift-record-form">Lifts</span>
-                <span class="add-lift-record-form-2-add hidden">Add Wod</span>
+                <span class="add-lift-record-form-2-add hidden">Add Lift</span>
                 <a href="#list-stuff-form" class="btn btn-md btn-success pull-right add-lift-record-form">
                     <span class="fa fa-plus"></span> Add
                 </a>
@@ -86,6 +86,8 @@
                         $table.find('tr').remove();
                         $table.append('<tr class="loader"><td colspan="6" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
                         loadLiftRecords();
+
+                        $(".js-new-lift-record-form-add")[0].reset();
 
                         $('.add-wod').addClass("hidden");
                         $('.js-lift-record-log-table.hidden:first').removeClass("hidden");

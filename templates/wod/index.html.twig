@@ -86,6 +86,8 @@
                             $table.append('<tr class="loader"><td colspan="3" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
                             loadWods();
 
+                            $(".js-new-wod-form")[0].reset();
+
                             $('.add-wod').addClass("hidden");
                             $('.js-wod-log-table.hidden:first').removeClass("hidden");
                             $('.add-wod-form').removeClass("hidden");

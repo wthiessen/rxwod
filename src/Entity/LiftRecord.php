@@ -11,6 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *  @ApiResource(
  *     normalizationContext={"groups"={"lift_record:read"}},
  *     denormalizationContext={"groups"={"lift_record:write"}},
+ *     attributes={"order"={"createdAt": "DESC"}},
  * )
  * @ORM\Entity(repositoryClass=LiftRecordRepository::class)
  */

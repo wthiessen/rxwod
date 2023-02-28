@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <h2>
+                <span class="add-wod-form-2">Add Wods</span>
+            </h2>
+
+            <br>
+            <div class="form-group add-wod">
+                <form action="{{ path('app_wod_import') }}" method="POST">
+                    <div><label for="date">Date</label> <input class="createdAt" type="date" name="createdAt" id="createdAt" value="{{ "now"|date("Y-m-d") }}" class="form-control" required></div><br>
+                    <div><label for="wod">Wod </label> <textarea style="width: 33%; height: 250px; display: block; resize: vertical;" name="wod" required></textarea></div>
+                    <br>
+                    <div><button type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

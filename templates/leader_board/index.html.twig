@@ -4,14 +4,14 @@
     <div class="container">
         <div class="row">
             <h2>
-                Leader Board
-                <a href="#list-stuff-form" class="btn btn-md btn-success pull-right">
-                    <span class="fa fa-plus"></span> Add
-                </a>
+                Leader Board  {{ wod_id }}
+{#                <a href="#list-stuff-form" class="btn btn-md btn-success pull-right">#}
+{#                    <span class="fa fa-plus"></span> Add#}
+{#                </a>#}
             </h2>
-                TODO show today's or last day's scores
-                TODO add Users
-                    chat feature
+
+{#                TODO add Users#}
+{#                    chat feature#}
 
             <table class="table table-striped js-wod-log-table" >
                 <thead>
@@ -32,8 +32,7 @@
             <br>
             <div class="form-group">
                 <form class="form-inline js-new-wod-form" novalidate data-url="api/leaderboards">
-                    <div><label for="date">Date</label> <input type="date" name="date" value="{{ "now"|date("Y-m-d") }}" class="form-control"></div><br>
-                    <div><label for="wod">WOD Date</label> <input type="date" name="wod" value="{{ "now"|date("Y-m-d") }}" class="form-control"></div><br>
+{#                    <div><label for="createdAt">Date</label> <input type="date" name="createdAt" value="{{ "now"|date("Y-m-d") }}" class="form-control"></div><br>#}
                     <div><label for="name">Name</label> <input type="text" name="name" placeholder="Name" class="form-control"></div><br>
                     <div><label for="time">Score</label> <input type="text" name="score" placeholder="Score" class="form-control"></div><br>
                     <div><label for="comments">Comments</label> <input type="text" name="comments" placeholder="Comments" class="form-control"></div><br>
@@ -69,9 +68,16 @@
                 var $form = $(this).closest('form');
 
                 var json = convertFormToJSON($form);
-                // json.wod = parseInt($form.find('#wod_id').val());
-                // json.owner = "/api/users/1"; // TODO get logged in user
+                console.log(json);
 
+                json.wod = {{ wod_id }};
+
+                if (json.rx == "on") {
+                    json.rx = 1;
+                } else {
+                    json.rx = 0;
+                }
+console.log(json)
                 var self = this;
                 $.ajax({
                     url: newLeaderboardUrl,
@@ -94,20 +100,21 @@
             var loadLeaderboard = function (e) {
                 $table.append('<tr class="loader"><td colspan="6" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
                 $.ajax({
-                    url: 'api/leaderboards.json', // ?dateCreated=2022-10-09
+                    // url: 'api/leaderboards.json?dateCreated=2023-02-13', // ?dateCreated=2022-10-09
+                    url: 'api/leaderboards.json?wod={{ wod_id }}', // ?dateCreated=2022-10-09
                     method: 'GET',
                 }).then(function(data) {
 
-                    console.log(data);
+                    console.log(data[0].id);
 
-                    data.reverse();
+                    // data.reverse();
 
                     $('tr.loader').remove();
                     console.log(data)
                     $.each(data, function(d, dat) {
                         // dat.dateCreated = new Date(dat.dateCreated);
-                        console.log(dat)
-                        var html = '<tr data-url="leaderboards/' + dat.id + '"><td>'+dat.name.toString()+'</td><td>'+ dat.score +'</td>' +
+                        // console.log(dat)
+                        var html = '<tr data-wod-id="' + data[0].id +'" data-url="leaderboards/' + dat.id + '"><td>'+dat.name.toString()+'</td><td>'+ dat.score +'</td>' +
                             '<td>'+ (dat.comments ? dat.comments : '') +'</td><td>'+ (dat.rx ? 'Yes' : 'No') +'</td><td>'+ dat.dateCreated +'</td>' +
                             '<td><a href="#"><span class="fa fa-trash js-delete-wod" data-url="api/leaderboards/' + dat.id + '"></span></a></td></tr>';
                         $table.append(html);

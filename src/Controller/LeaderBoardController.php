@@ -24,6 +24,8 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use DateTimeImmutable;
+use DateTimeZone;
 
 // TODO show new leaderboard for date, join to wod on date?
 
@@ -32,10 +34,30 @@ class LeaderBoardController extends AbstractController
     /**
      * @Route("/leaderboard", name="leader_board")
      */
-    public function index()
+    public function index(WodRepository $wodRepository)
     {
+        /** @var Wod|null $wod */
+//        $wod = $wodRepository->find(358);
+
+//        '2023-02-13'
+//        $currentDate = new Date();
+//        echo $currentDate->format('Y-m-d');
+
+        $date = new \DateTimeImmutable(date('Y-m-d' ));
+
+
+
+//        $date_est = $date->setTimezone((new \DateTimeZone('America/Toronto')));
+//
+
+
+        $wod = $wodRepository->findOneBy(['createdAt'=> $date]);
+//echo '<pre>';
+//var_dump($wod); die;
+
         return $this->render('leader_board/index.html.twig', [
             'scores' => [],
+            'wod_id' => $wod->getId() - 1,
         ]);
     }
 
@@ -44,15 +66,14 @@ class LeaderBoardController extends AbstractController
       */
     public function show($id, LeaderboardRepository $leaderboardRepository, WodRepository $wodRepository, MarkdownParserInterface $markdownParser)
     {
-        /** @var Leaderboard|null $leaderboard */
-        $leaderboard = $leaderboardRepository->findBy(['id' =>$id, ['createdAt' => 'DESC']]);
+//        /** @var Leaderboard|null $leaderboard */
+//        $leaderboard = $leaderboardRepository->findBy(['id' =>$id, ['score' => 'ASC']]);
+//
+//        /** @var Wod|null $wod */
+//        $wod = $wodRepository->find($leaderboard->getWod());
 
-        /** @var Wod|null $wod */
-        $wod = $wodRepository->find($leaderboard->getWod());
-
-        return $this->render('leader_board/show.html.twig', [
-            'leaderboard' => $leaderboard,
-            'wod' => $wod,
+        return $this->render('leaderboards/index.html.twig', [
+//            'scores' => [],
         ]);
     }
 

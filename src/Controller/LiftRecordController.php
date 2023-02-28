@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class LiftRecordController extends AbstractController
 {
     /**
-     * @Route("/lift_records", name="lift_record")
+     * @Route("/lift_records", name="lift_records")
      */
     public function index(): Response
     {
