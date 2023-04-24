@@ -41,7 +41,7 @@ class WodController extends AbstractController
     /**
     //  * @Route("wod/{id<\d+>}", name="app_wod_show")
      */
-    public function show($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository, MarkdownParserInterface $markdownParser)
+    public function show($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository, MarkdownParserInterface $markdownParser, EntityManagerInterface $em)
     {
         /** @var Wod|null $wod */
         $wod = $wodRepository->find($id);
@@ -58,8 +58,30 @@ class WodController extends AbstractController
             $names[] = $name['name'];
         }
 
+//        $date = $wod->getCreatedAt()->format('Y-m-d');
+//
+//        $next_date = date('Y-m-d', strtotime($date. '+1 day'));
+//        echo $next_date; die;
+//var_dump($next_date); die;
+        /** @var Wod|null $wod */
+        $nextWod = $wodRepository->findOneNextId($wod->getId());
+
+        /** @var array|null */
+        $previousWod = $wodRepository->findOnePreviousId($wod->getId());
+
+//        $query = $em->createNativeQuery('SELECT id FROM wod WHERE
+//        id = (SELECT id FROM users WHERE id > 2 LIMIT 1)', $rsm);
+//
+//        var_dump($nextwod); die;
+
+
+//        var_dump(end($previousWod)->getId()); die;
+//        var_dump($wod->getId()); die;
+
         return $this->render('wod/show.html.twig', [
             'wod' => $wod,
+            'next_wod' => $nextWod ? $nextWod->getId() : null,
+            'previous_wod' => end($previousWod) ? end($previousWod)->getId() : null,
             'userNames' => $names,
         ]);
     }
@@ -87,7 +109,7 @@ class WodController extends AbstractController
     public function import(EntityManagerInterface $entityManager, WodRepository $wodRepository, Request $request)
     {
         if ($request->isMethod('post')) {
-//            $createdAt = $request->request->get('createdAt');
+            $createdAt = $request->request->get('createdAt');
             $wods = $request->request->get('wod');
 
             $wods = trim($wods);
@@ -104,6 +126,8 @@ class WodController extends AbstractController
             $prev_day = '';
             $wods = [];
             $temp = '';
+
+            $date = $createdAt;
 
             foreach ($textArray as $line) {
                 if (preg_match($pattern, $line, $matches, PREG_OFFSET_CAPTURE)) {
@@ -125,27 +149,27 @@ class WodController extends AbstractController
             $dateimm = '';
 
             $last_date = '';
+
+            $date = date('Y-m-d', strtotime($date. '-1 day'));
+
             foreach ($wods as $day =>$wod) {
                 $newWod = new Wod();
 
-                $date = date('Y-m-d', strtotime("next ".$day));
-
-                if (strtotime($date) < $last_date) {
-                    $date = date('Y-m-d', strtotime("+1 Week next ".$day));
-                }
+                $date = date('Y-m-d', strtotime($date.'+1 day'));
 
                 $dateimm = new DateTimeImmutable($date);
 
                 $newWod->setWod(trim($wod))
                     ->setCreatedAt($dateimm);
 
-                $last_date = strtotime($date);
+//                $last_date = strtotime($date);
 
                 $entityManager->persist($newWod);
                 $entityManager->flush();
 
-                $this->redirectToRoute('wod_list');
             }
+
+            $this->redirectToRoute('wod_list');
         }
 
         return $this->render('wod/import.html.twig', [

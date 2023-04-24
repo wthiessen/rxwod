@@ -6,64 +6,28 @@
             <div class="col-12">
                 <div class="q-container-show p-4">
                     <div class="row">
-                        <div class="col-md-5">
+                        <div class="col-md-6">
                             <div class="q-container-show q-display p-3">
-                                <h2>
-                                    Wod {{ wod.createdAt|date("Y-m-d") }}
-                                    <a href="{{ wod.id + 1 }}" class="btn btn-md btn-info pull-right">
-                                        Next Wod <span class="fa fa-angle-right"></span>
-                                    </a>
+                                <span>
+                                    <h2>
+                                        Wod {{ wod.createdAt|date("Y-m-d") }}
+
+
                                     <a href="edit/{{ wod.id }}" class="btn btn-md btn-success pull-right">
                                         <span class="fa fa-edit"></span> Edit
                                     </a>
-                                </h2>
+                                    <a href="{{ next_wod }}" class="btn btn-md btn-info pull-right" {{ next_wod == null ? 'disabled' : '' }}>
+                                        Next Wod <span class="fa fa-angle-right"></span>
+                                    </a>
+                                    <a href="{{ previous_wod }}" class="btn btn-md btn-info pull-right" {{ previous_wod == null ? 'disabled' : '' }}>
+                                        Prev Wod <span class="fa fa-angle-left"></span>
+                                    </a>
+
+                                    </h2>
+                                </span>
 {#                              TODO edit wod if owner#}
                                 <br>
                                     {{ wod.wod|markdown }}
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <h2>My Score</h2>
-{#                                                                    TODO fix formatting <br>#}
-{#                                                                    TODO add dropdown of past names <br>#}
-{#                                                                    TODO if score for name/user true, hide form <br>#}
-{#                                                                    TODO validation <br>#}
-                            <div class="form-group">
-                                <form class="form-inline js-new-wod-form" data-url="../api/leaderboards">
-                                    <table class="table table-stripe">
-                                        <tr>
-                                            <td><label for="date">Date</label></td>
-                                            <td><input type="date" name="date" value="{{ "now"|date("Y-m-d") }}" class="form-control" required></td>
-                                        </tr>
-                                        <tr>
-                                            <td><label for="name">Name</label></td>
-                                            <td>
-                                                <select name="name_dropdown" id="name_dropdown">
-                                                    <option value="">-</option>
-                                                    {% for name in userNames %}
-{#                                                        {{ name }}#}
-                                                        <option value="{{ name }}">{{ name }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                                <input type="text" name="name" placeholder="Name" value="Will" class="form-control" required>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><label for="time">Score</label></td>
-                                            <td><input type="text" name="score" placeholder="Score" class="form-control" required></td>
-                                        </tr>
-                                        <tr>
-                                            <td> <label for="comments">Comments</label></td>
-                                            <td><textarea name="comments"  cols="30" rows="5"></textarea></td>
-                                        </tr>
-                                        <tr>
-                                            <td style="vertical-align: middle;"><label for="rx">Rx</label></td>
-                                            <td style="vertical-align: middle;"><input type="checkbox" name="rx" class="form-control"></td>
-                                        </tr>
-                                    </table>
-                                    <input type="hidden" name="wod" value="{{ wod.id }}" class="form-control">
-                                    <div><div class="btn btn-primary">Submit</div>
-                                </form>
                             </div>
                         </div>
                     </div>
@@ -71,6 +35,45 @@
             </div>
         </div>
         <div class="row">
+            <div class="col-md-5">
+                <h2>My Score</h2>
+                <div class="form-group">
+                    <form class="form-inline js-new-wod-form" data-url="../api/leaderboards">
+                        <table class="table table-stripe">
+                            <tr>
+                                <td><label for="date">Date</label></td>
+                                <td><input type="date" name="date" value="{{ "now"|date("Y-m-d") }}" class="form-control" required></td>
+                            </tr>
+                            <tr>
+                                <td><label for="name">Name</label></td>
+                                <td>
+                                    <select name="name_dropdown" id="name_dropdown">
+                                        <option value="">-</option>
+                                        {% for name in userNames %}
+                                            <option value="{{ name }}">{{ name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <input type="text" name="name" placeholder="Name" value="Will" class="form-control" required>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="time">Score</label></td>
+                                <td><input type="text" name="score" placeholder="Score" class="form-control" required></td>
+                            </tr>
+                            <tr>
+                                <td> <label for="comments">Comments</label></td>
+                                <td><textarea name="comments"  cols="30" rows="5"></textarea></td>
+                            </tr>
+                            <tr>
+                                <td style="vertical-align: middle;"><label for="rx">Rx</label></td>
+                                <td style="vertical-align: middle;"><input type="checkbox" name="rx" class="form-control"></td>
+                            </tr>
+                        </table>
+                        <input type="hidden" name="wod" value="{{ wod.id }}" class="form-control">
+                        <div><div class="btn btn-primary">Submit</div>
+                    </form>
+                </div>
+            </div>
             <div class="col-md-10">
                 <h2>Leaderboard</h2>
                 {#                                        TODO if owner or admin allow delete <br>#}
