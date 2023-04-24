@@ -41,7 +41,7 @@ class WodController extends AbstractController
     /**
     //  * @Route("wod/{id<\d+>}", name="app_wod_show")
      */
-    public function show($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository, MarkdownParserInterface $markdownParser, EntityManagerInterface $em)
+    public function show($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository, MarkdownParserInterface $markdownParser)
     {
         /** @var Wod|null $wod */
         $wod = $wodRepository->find($id);
@@ -58,25 +58,11 @@ class WodController extends AbstractController
             $names[] = $name['name'];
         }
 
-//        $date = $wod->getCreatedAt()->format('Y-m-d');
-//
-//        $next_date = date('Y-m-d', strtotime($date. '+1 day'));
-//        echo $next_date; die;
-//var_dump($next_date); die;
         /** @var Wod|null $wod */
         $nextWod = $wodRepository->findOneNextId($wod->getId());
 
         /** @var array|null */
         $previousWod = $wodRepository->findOnePreviousId($wod->getId());
-
-//        $query = $em->createNativeQuery('SELECT id FROM wod WHERE
-//        id = (SELECT id FROM users WHERE id > 2 LIMIT 1)', $rsm);
-//
-//        var_dump($nextwod); die;
-
-
-//        var_dump(end($previousWod)->getId()); die;
-//        var_dump($wod->getId()); die;
 
         return $this->render('wod/show.html.twig', [
             'wod' => $wod,
