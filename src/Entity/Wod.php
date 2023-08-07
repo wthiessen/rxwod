@@ -23,7 +23,7 @@ use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
  * @ApiResource(
  *     normalizationContext={"groups"={"wod:read"}},
  *     denormalizationContext={"groups"={"wod:write"}},
- *     attributes={"order"={"createdAt": "DESC"}}
+ *     attributes={"order"={"createdAt": "DESC"}, "pagination_items_per_page"=10}
  * )
  * @ORM\Entity(repositoryClass=WodRepository::class)
  * @ApiFilter(SearchFilter::class, properties={"createdAt": "partial"})
@@ -92,12 +92,12 @@ class Wod
 
     public function getWod(): ?string
     {
-        return nl2br($this->wod);
+        return ($this->wod);
     }
 
     public function setWod(?string $wod): self
     {
-        $this->wod = strip_tags($wod);
+        $this->wod = $wod;
 
         return $this;
     }

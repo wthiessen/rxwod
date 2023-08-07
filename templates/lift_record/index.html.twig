@@ -21,8 +21,18 @@
                     <th>Created</th>
                     <th></th>
                 </tr>
-                </thead>
+                </thead>S
                 <tbody>
+                    {% for lift_record in lift_records %}
+                        <tr>
+                            <td><a href="lift_record/edit/{{ lift_record.id }}">{{ lift_record.exercise }}</a></td>
+                            <td>{{ lift_record.repScheme }}</td>
+                            <td>{{ lift_record.weight }}</td>
+                            <td>{{ lift_record.comment }}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
             </table>
 
@@ -100,38 +110,7 @@
                 });
             });
 
-            var $form = $table.closest('form');
 
-            var loadLiftRecords = function (e) {
-                $table.append('<tr class="loader"><td colspan="5" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
-
-                console.log($('.createdAt'));
-
-                var dateFilter = document.getElementById('createdAt').getAttribute('value');
-                $.ajax({
-                    url: 'api/lift_records.json',
-                    method: 'GET',
-                }).then(function(data) {
-                    $('tr.loader').remove();
-                    // console.log(data)
-                    $.each(data, function(d, dat) {
-                        dat.createdAt = dat.createdAt.split('T')[0];
-                        // console.log(dat.createdAt);
-
-                        var html = '<tr data-url="api/lift_records/' + dat.id + '">' +
-                            '<td>'+ dat.exercise +'</td>' +
-                            '<td>'+ dat.repScheme +'</td>' +
-                            '<td>'+ dat.weight +'</td>' +
-                            '<td>'+ dat.comment +'</td>' +
-                            '<td>'+ dat.createdAt +'</td>' +
-                            '<td><a href="#"><span class="fa fa-trash js-delete-lift-record" data-url="api/lift_records/' + dat.id + '"></span></a></td></tr>';
-                        $table.append(html);
-                    });
-                    deleteWod();
-                });
-            };
-
-            loadLiftRecords();
 
             var handleRepLogDelete = function (e) {
                 e.preventDefault();
@@ -171,11 +150,6 @@
                     // e.preventDefault();
                     var $link = $(e.currentTarget);
                     var wodUrl = $link.data('url');
-
-//                     console.log($link, wodUrl)
-// return;
-
-                    // $('.add-lift-record-form').addClass("hidden");
 
                     $.ajax({
                         url: wodUrl,

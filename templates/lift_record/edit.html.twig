@@ -1,51 +1,134 @@
+{% extends 'base.html.twig' %}
 
-<template>
-    <div>
-        <form @submit.prevent="addRecord">
+{% block body %}
+<div class="container" ng-app="myApp" ng-controller="liftRecordCtrl">
+    <div class="row">
+        <div class="col-12">
             <div>
-                <label for="exercise">Exercise:</label>
-                <input type="text" id="exercise" v-model="newRecord.exercise" />
+                <div class="q-container-show p-4">
+                    <div class="row">
+                        <div class="col">
+                            <div class="q-container-show q-display p-3">
+                                <h2>Edit Lift Record {{ lift_record.createdAt|date("Y-m-d") }}</h2>
+                                <div class="form-group">
+                                    <form class="form-inline" data-url="api/lift_records">
+                                        <div><label for="date">Created</label> <input class="createdAt" type="date" name="createdAt" id="createdAt" value="{{ "now"|date("Y-m-d") }}" class="form-control" required></div><br>
+                                        <div><label for="exercise">Exercise</label> <input class="exercise" type="text" name="exercise" id="exercise" ng-model="lift_record.exercise" value="{{ lift_record.exercise }}" class="form-control" required></div><br>
+                                        <div><label for="repScheme">Rep Scheme</label> <input class="repScheme" type="text" name="repScheme" id="repScheme" ng-model="lift_record.repScheme" value="{{ lift_record.repScheme }}" class="form-control" required></div><br>
+                                        <div><label for="weight">Weight</label> <input class="weight" type="text" name="weight" id="weight" ng-model="lift_record.weight" value="{{ lift_record.weight }}" class="form-control" required></div><br>
+                                        <div><label for="comment">Comment</label> <input class="comment" type="text" name="comment" id="comment" ng-model="lift_record.comment" value="{{ lift_record.comment }}" class="form-control"></div><br>
+                                        <br>
+                                        <div><div class="btn btn-primary" ng-click="editScore(lift_record)">Submit</div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label for="repScheme">Rep Scheme:</label>
-                <input type="text" id="repScheme" v-model="newRecord.repScheme" />
-            </div>
-            <div>
-                <label for="weight">Weight:</label>
-                <input type="number" id="weight" v-model="newRecord.weight" />
-            </div>
-            <div>
-                <label for="comment">Comment:</label>
-                <input type="text" id="comment" v-model="newRecord.comment" />
-            </div>
-            <button type="submit">Add Record</button>
-        </form>
+        </div>
     </div>
-</template>
+    <br>
+</div>
+    {% block javascripts %}
+        {{ parent() }}
+        <script>
+            app.filter('trustAsHtml', ['$sce', function($sce){
+                return function(val) {
+                    return $sce.trustAsHtml(val);
+                };
+            }]);
+            app.controller("liftRecordCtrl", function($scope, $http) {
+                console.log('liftRecordCtrl')
+                $scope.loadedPage = 1;
+                $scope.clickButton = false;
 
-<script>
-    import axios from "axios";
+                $scope.getLift = function () {
+                    $http({
+                        url: '../../api/lift_records/{{ lift_record.id }}',
+                        method: 'GET',
+                    }).then(function(response) {
+                        console.log(response)
+                        $scope.lift_record = response.data;
 
-    export default {
-        data() {
-            return {
-                newRecord: {
-                    exercise: "",
-                    repScheme: "",
-                    weight: 0,
-                    comment: ""
+                        $scope.getLiftRecordsFor();
+                        // console.log($scope.wod);
+                    });
                 }
-            };
-        },
-        methods: {
-            async addRecord() {
-                try {
-                    const response = await axios.post("/api/lift_records", this.newRecord);
-                    console.log(response.data);
-                } catch (error) {
-                    console.error(error);
+
+                $scope.getLift();
+
+                $scope.editScore = function (lift_record) {
+                    {#lift_record.wod = {{ wod.id }};#}
+                    // console.log(lift_record)
+                    var data = {
+                        id: {{ lift_record.id }},
+                        exercise: lift_record.exercise,
+                        weight: parseInt(lift_record.weight),
+                        comment: lift_record.comment,
+                    }
+                    console.log(data)
+                    // return;
+
+                    $http({
+                        url: '../../api/lift_records/{{ lift_record.id }}',
+                        data: data,
+                        method: 'PUT',
+                    }).then(function(response) {
+                        console.log(response)
+                        // $scope.getLeaderboard();
+                    });
                 }
-            }
-        }
-    };
-</script>
+
+                $scope.showLifts = false;
+                $scope.enterScore = false;
+
+                // Back Squat
+                {#$scope.getLiftRecordsFor = function () {#}
+                {#    var text = $scope.wod.wod[1];#}
+
+                {#    text = text.split('<br/>')#}
+
+                {#    console.log(text[1]);#}
+                {#    // var pos = text.search(/back squat/i);#}
+
+                {#    // if (pos > 0) {#}
+                {#    $http({#}
+                {#        url: '../api/lift_records.json?exercise=' + text[1],#}
+                {#        method: 'GET',#}
+                {#    }).then(function(response) {#}
+                {#        #}{#console.log(response, 'api/wods/{{ wod.id }}')#}
+                {#        console.log(response);#}
+                {#        $scope.lift_records = response.data;#}
+                {#    });#}
+                {#    // }#}
+                {#}#}
+
+                {#$scope.getLeaderboard = function () {#}
+                {#    $http({#}
+                {#        url: '../api/leaderboards.json?wod=' + {{ wod.id }},#}
+                {#        method: 'GET',#}
+                {#    }).then(function(response) {#}
+                {#        #}{#console.log(response, 'api/wods/{{ wod.id }}')#}
+                {#        console.log(response);#}
+                {#        $scope.scores = response.data;#}
+                {#    });#}
+                {#}#}
+
+                {#$scope.getLeaderboard();#}
+
+                {#$scope.getWod();#}
+
+                {#$scope.deleteWod = function (id) {#}
+                {#    $http({#}
+                {#        url: '../api/wods/' + id,#}
+                {#        method: 'DELETE',#}
+                {#    }).then(function(response) {#}
+                {#        // $scope.getWods();#}
+                {#    });#}
+                {#}#}
+            });
+
+        </script>
+    {% endblock %}
+{% endblock %}

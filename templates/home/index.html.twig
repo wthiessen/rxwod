@@ -1,12 +1,61 @@
 {% extends 'base.html.twig' %}
 
+{% block javascripts %}
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.14/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.14/angular-route.js"></script>
+    <script>
+
+        var app = angular.module("myApp", []);
+
+        app.controller('mySampleController', ['$scope', function ($scope) {
+            console.log('thing')
+            $scope.thing = 'here im here';
+            $scope.openSampleModal = function () {
+
+                console.log('openSampleModal')
+
+                // var modalInstance = $uibModal.open({
+                //     animation: true,
+                //     size: 'lg',
+                //     // templateUrl: 'views/modal-template/sampleModal.html',
+                //     template: '<div>SDFSDFJL</div>',
+                //     controller: 'sampleModalController',
+                // });
+                // modalInstance.result.then(function () {
+                //
+                // }, function () {
+                //
+                // });
+            };
+        }]);
+
+        // app.controller('sampleModalController', ['$scope','$uibModalInstance', function ($scope, $uibModalInstance){
+        //     console.log('asdfasdf')
+            // $scope.close = function () {
+            //     // $uibModalInstance.dismiss('cancel');
+            // };
+        // }]);
+
+        // app.controller("myCtrl", function($scope) {
+        //     $scope.products = ["Milk", "Breaddd", "Cheese"];
+        // });
+        // .config(function($interpolateProvider){
+        //     $interpolateProvider.startSymbol('{:').endSymbol(':}');
+        // });
+    </script>
+
+{% endblock %}
+
 {% block body %}
-    <div class="container">
+    <div class="container" ng-app="myApp">
         <div class="row mb-3">
             <div class="col">
                 <button class="btn btn-question">Ask a Question</button>
             </div>
         </div>
+
         <div class="row">
             <div class="col-12">
                 <div style="box-shadow: 2px 3px 9px 4px rgba(0,0,0,0.04);">
@@ -18,12 +67,12 @@
                                     <a class="vote-down" href="#"><i class="far fa-arrow-alt-circle-down"></i></a>
                                 </div>
                             </div>
+
                             <div class="col">
-                                <a class="q-title" href=""><h2>Reversing a Spell</h2></a>
-                                <div class="q-display p-3">
-                                    <i class="fa fa-quote-left mr-3"></i>
-                                    <p class="d-inline">I've been turned into a cat, any thoughts on how to turn back? While I'm adorable, I don't really care for cat food.</p>
-                                    <p class="pt-4"><strong>--Tisha</strong></p>
+                                <div ng-controller="mySampleController">
+                                    {% verbatim %}
+                                      <a href="#" ng-click="openSampleModal()"><span >{{thing}}</span></a>
+                                    {% endverbatim %}
                                 </div>
                             </div>
                         </div>
@@ -46,12 +95,7 @@
                             </div>
                         </div>
                         <div class="col">
-                            <a class="q-title" href=""><h2>Pausing a Spell</h2></a>
-                            <div class="q-display p-3">
-                                <i class="fa fa-quote-left mr-3"></i>
-                                <p class="d-inline">I mastered the floating card, but now how do I get it back to the ground?</p>
-                                <p class="pt-4"><strong>--Jerry</strong></p>
-                            </div>
+
                         </div>
                     </div>
                 </div>

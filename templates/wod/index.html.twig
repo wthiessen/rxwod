@@ -1,7 +1,6 @@
 {% extends 'base.html.twig' %}
-
 {% block body %}
-    <div class="container">
+    <div class="container" ng-app="myApp" ng-controller="rxWodsCtrl">
         <div class="row">
             <h2>
                <span class="add-wod-form">Wods</span>
@@ -11,7 +10,7 @@
                 </a>
             </h2>
 
-            <table class="table table-striped js-wod-log-table" >
+            <table class="table table-striped" js-wod-log-table>
                 <thead>
                 <tr>
                     <th>Date</th>
@@ -20,15 +19,36 @@
                 </tr>
                 </thead>
                 <tbody>
+                    <tr ng-repeat="wod in wods" ng-click="getWod(wod.id)">
+                        <td>{:wod.createdAt.split('T')[0]:}</td>
+                        <td ng-bind-html="wod.wod.substring(0,110)|trustAsHtml"></td>
+{#                        #}
+                        <td><span class="fa fa-trash js-delete-wod" ng-click="deleteWod(wod.id)"></span></td>
+                    </tr>
                 </tbody>
+                <tfoot>
+                <nav aria-label="...">
+                    <tr>
+                        <td>
+                            <ul class="pagination">
+                                <li class="page-item">
+                                    <a class="page-link" href="#" ng-click="prevPage()">Previous</a>
+                                </li>
+                                <li class="page-item active">
+                                    <a class="page-link" href="#" >{:loadedPage:} <span class="sr-only">(current)</span></a>
+                                </li>
+                                <li class="page-item"><a class="page-link" href="#" ng-click="gotoPage(loadedPage + 1)">{:loadedPage + 1:}</a></li>
+                                <li class="page-item"><a class="page-link" href="#" ng-click="gotoPage(loadedPage + 2)">{:loadedPage + 2:}</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" ng-click="nextPage()" href="#">Next</a>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </nav>
+                </tfoot>
             </table>
 
-            {# {{ include('wod/_form.html.twig') }} #}
-{# TODO add calendar widget#}
-{# TODO pagination#}
-{# TODO view, addedit#}
-{# TODO move to external form  #}
-{#                        TODO Only allowed<br>#}
             <br>
             <div class="form-group add-wod hidden">
                 <form class="form-inline js-new-wod-form" data-url="api/wods">
@@ -40,14 +60,13 @@
             </div>
         </div>
     </div>
-        <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
         <script>
             // TODO move to external file
             // TODO refactor to object
 
             $(document).ready(function() {
-                var $table = $('.js-wod-log-table');
+                // var $table = $('.js-wod-log-table');
 
                 function convertFormToJSON(form) {
                     const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
@@ -64,7 +83,6 @@
                     $('.js-wod-log-table').addClass("hidden");
                     $('.add-wod-form').addClass("hidden");
                     $('.add-wod-form-2').removeClass("hidden");
-                    console.log('add wod');
                 });
 
                 $('.js-new-wod-form').unbind('click').find('.btn-primary').on('click', function (e) {
@@ -82,58 +100,16 @@
                         data: JSON.stringify(json),
                         contentType: 'application/json',
                         success: function(result){
-                            $table.find('tr').remove();
-                            $table.append('<tr class="loader"><td colspan="3" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
-                            loadWods();
-
-                            $(".js-new-wod-form")[0].reset();
-
                             $('.add-wod').addClass("hidden");
                             $('.js-wod-log-table.hidden:first').removeClass("hidden");
                             $('.add-wod-form').removeClass("hidden");
                             $('.add-wod-form-2').addClass("hidden");
                         },
                         error: function(request,status,errorThrown) {
-                            console.log(request.responseJSON.violations);
                         }
                     });
-                    //     .then(function (data) {
-                    //     $table.find('tr').remove();
-                    //     $table.append('<tr class="loader"><td colspan="3" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
-                    //     loadWods();
-                    // })
+
                 });
-
-                var $form = $table.closest('form');
-
-                var loadWods = function (e) {
-                    $table.append('<tr class="loader"><td colspan="3" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
-
-                    console.log($('.createdAt'));
-
-                    var dateFilter = document.getElementById('createdAt').getAttribute('value');
-                    $.ajax({
-                        // url: 'api/wods.json?createdAt=' + dateFilter,
-                        url: 'api/wods.json',
-                        method: 'GET',
-                    }).then(function(data) {
-                        $('tr.loader').remove();
-                        // console.log(data)
-                        $.each(data, function(d, dat) {
-                            dat.createdAt = dat.createdAt.split('T')[0];
-                            // console.log(dat.createdAt);
-
-                            var html = '<tr data-url="wod/' + dat.id + '">' +
-                                '<td>'+ dat.createdAt +'</td>' +
-                                '<td>'+ dat.wod.substring(0,110) +'</td>' +
-                                '<td><a href="#"><span class="fa fa-trash js-delete-wod" data-url="api/wods/' + dat.id + '"></span></a></td></tr>';
-                            $table.append(html);
-                        });
-                        deleteWod();
-                    });
-                };
-
-                loadWods();
 
                 var handleRepLogDelete = function (e) {
                     e.preventDefault();
@@ -147,36 +123,64 @@
                         .addClass('fa-spin');
 
                     var $row = $link.closest('tr');
-                    $.ajax({
-                        url: deleteUrl,
-                        method: 'DELETE',
-                    }).then(function() {
                         $row.fadeOut();
-                    }).catch(function (arg) {
-                    });
                 };
-
-                    // console.log($('.fa-trash'));
-
-                var deleteWod = function () {
-                    $('.fa-trash').on('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleRepLogDelete(e);
-                    });
-                }
-
-                $table.on(
-                    'click',
-                    'tbody tr',
-                    function (e) {
-                        // e.preventDefault();
-                        var $link = $(e.currentTarget);
-                        var wodUrl = $link.data('url');
-                        // console.log($link, wodUrl);
-                        window.location.href = wodUrl;
-                    }
-                );
             });
         </script>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        app.controller("rxWodsCtrl", function($scope, $http) {
+
+            $scope.loadedPage = 1;
+
+            $scope.nextPage = function () {
+                if ($scope.loadedPage > 1) {
+                    $scope.loadedPage++;
+                }
+                $scope.getWods();
+            }
+
+            $scope.prevPage = function () {
+                if ($scope.loadedPage > 1) {
+                    $scope.loadedPage--;
+                }
+                $scope.getWods();
+            }
+
+            $scope.gotoPage = function (page) {
+                if (page > 1) {
+                    $scope.loadedPage = page;
+                }
+                $scope.getWods();
+            }
+
+            $scope.getWods = function () {
+                $http({
+                    url: 'api/wods.json?page=' + $scope.loadedPage,
+                    method: 'GET',
+                }).then(function(response) {
+                    $scope.wods = response.data;
+                });
+            }
+
+            $scope.getWods();
+
+            $scope.getWod = function (id) {
+                console.log('getwod')
+                window.location.href = 'wod/' + id;
+            }
+
+            $scope.deleteWod = function (id) {
+                $http({
+                    url: 'api/wods/' + id,
+                    method: 'DELETE',
+                }).then(function(response) {
+                    $scope.getWods();
+                });
+            }
+        });
+    </script>
+
 {% endblock %}

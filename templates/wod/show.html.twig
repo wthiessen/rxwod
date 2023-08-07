@@ -1,222 +1,302 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container">
+    <div class="container" ng-app="myApp" ng-controller="RxWodCtrl">
         <div class="row">
             <div class="col-12">
                 <div class="q-container-show p-4">
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="q-container-show q-display p-3">
-                                <span>
-                                    <h2>
-                                        Wod {{ wod.createdAt|date("Y-m-d") }}
+                        <div class="col-md-9">
+                            <span>
+                                <h2>
+                                    Wod {{ wod.createdAt|date("Y-m-d") }}
 
-                                    <a href="edit/{{ wod.id }}" class="btn btn-md btn-success pull-right">
-                                        <span class="fa fa-edit"></span> Edit
-                                    </a>
-                                    <a href="{{ next_wod }}" class="btn btn-md btn-info pull-right" {{ next_wod == null ? 'disabled' : '' }}>
-                                        Next Wod <span class="fa fa-angle-right"></span>
-                                    </a>
-                                    <a href="{{ previous_wod }}" class="btn btn-md btn-info pull-right" {{ previous_wod == null ? 'disabled' : '' }}>
-                                        Prev Wod <span class="fa fa-angle-left"></span>
-                                    </a>
+                                <a href="edit/{{ wod.id }}" class="btn btn-md btn-success pull-right">
+                                    <span class="fa fa-edit"></span> Edit
+                                </a>
+                                <a href="{{ next_wod }}" class="btn btn-md btn-info pull-right" {{ next_wod == null ? 'disabled' : '' }}>
+                                    Next Wod <span class="fa fa-angle-right"></span>
+                                </a>
+                                <a href="{{ previous_wod }}" class="btn btn-md btn-info pull-right" {{ previous_wod == null ? 'disabled' : '' }}>
+                                    Prev Wod <span class="fa fa-angle-left"></span>
+                                </a>
 
-                                    </h2>
-                                </span>
-{#                              TODO edit wod if owner#}
-                                <br>
-                                    {{ wod.wod|markdown }}
+                                </h2>
+                            </span>
+                            <div class="col-md-3">
+                                <h3>WOD</h3>
+                                <span ng-bind-html="wod.wod|trustAsHtml"></span>
+                                <br><br>
+                                <div ng-click="editScore = !editScore">
+                                    <div>{:scores[0].score:} {:scores[0].comments:}</div>
+                                </div>
+                                <div ng-if="!scores[0].score || editScore">
+                                    <h3>Score</h3>
+                                    <div class="form-group">
+                                        <form class="form-inline">
+                                            <input type="hidden" name="date" value="{{ "now"|date("Y-m-d") }}" class="form-control">
+                                            <input type="hidden" name="name" placeholder="Name" value="Will" class="form-control">
+                                            <table class="table table-stripe" >
+                                                <tr>
+                                                    <td><label for="time">Score</label></td>
+                                                    <td><input type="text" name="score" placeholder="Score" ng-model="addForm.score" class="form-control" required></td>
+                                                </tr>
+                                                <tr>
+                                                    <td> <label for="comments">Comments</label></td>
+                                                    <td><textarea name="comments" ng-model="addForm.comments;" cols="25" rows="6"></textarea></td>
+                                                </tr>
+                                                {#                                                    <td  style="vertical-align: middle;"><label for="rx">Rx</label></td>#}
+                                                {#                                                    <td style="vertical-align: middle;"><input type="checkbox" ng-model="score.rx" name="rx" class="form-control"></td>#}
+                                            </table>
+
+                                            <input type="hidden" name="wod" ng-model="score.wod" value="{{ wod.id }}" class="form-control">
+                                            <div ng-show="!scores[0].id" class="btn btn-primary" ng-click="addScore(score)">Add</div>
+                                            <div ng-show="scores[0].id" class="btn btn-primary" ng-click="editWodScore()">Edit</div>
+{#                                            <div><div class="btn btn-primary" ng-click="scores[0].ID ? editScore() : addScore(score)">Edit</div>#}
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div xng-if="wodHasLift">
+                                    <div><label for="weight">Lift Weight:</label>
+                                        <span ng-show="!showScoreEdit" ng-click="showLiftScoreEdit()" ng-bind="lift_record[0].weight"></span>
+                                        <input xng-show="showScoreEdit" type="text" ng-model="lift_record[0].weight" width="10">
+                                    </div><br>
+                                    <div><div xng-show="showScoreEdit" class="btn btn-primary" ng-click="editLiftScore()">Submit</div>
+                                </div>
+{#                                <br>#}
+<!--                                <span ng-click="enterScore()" ng-bind-html="wod.wod[2]|trustAsHtml"></span>-->
+                            </div>
+                            <div >
+                                <div ng-if="wodHasLift">
+                                    <h3>Lift History</h3>
+                                    <table class="table">
+                                        <thead>
+                                        <tr>
+                                            <th>Created at</th>
+                                            <th>Exercise</th>
+                                            <th>Rep Scheme / Comments</th>
+                                            <th>Weight</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr ng-repeat="lr in lift_history">
+                                            <td>{:lr.createdAt.split('T')[0]:}</td>
+                                            <td>{:lr.exercise:}</td>
+                                            <td>{:lr.repScheme.substring(0,25):} {:lr.comment.substring(0,30):}</td>
+                                            <td>{:lr.weight:}</td>
+                                            <td></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-5">
-                <h2>My Score</h2>
-                <div class="form-group">
-                    <form class="form-inline js-new-wod-form" data-url="../api/leaderboards">
-                        <table class="table table-stripe">
-                            <tr>
-                                <td><label for="date">Date</label></td>
-                                <td><input type="date" name="date" value="{{ "now"|date("Y-m-d") }}" class="form-control" required></td>
-                            </tr>
-                            <tr>
-                                <td><label for="name">Name</label></td>
-                                <td>
-                                    <select name="name_dropdown" id="name_dropdown">
-                                        <option value="">-</option>
-                                        {% for name in userNames %}
-                                            <option value="{{ name }}">{{ name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <input type="text" name="name" placeholder="Name" value="Will" class="form-control" required>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><label for="time">Score</label></td>
-                                <td><input type="text" name="score" placeholder="Score" class="form-control" required></td>
-                            </tr>
-                            <tr>
-                                <td> <label for="comments">Comments</label></td>
-                                <td><textarea name="comments"  cols="30" rows="5"></textarea></td>
-                            </tr>
-                            <tr>
-                                <td style="vertical-align: middle;"><label for="rx">Rx</label></td>
-                                <td style="vertical-align: middle;"><input type="checkbox" name="rx" class="form-control"></td>
-                            </tr>
-                        </table>
-                        <input type="hidden" name="wod" value="{{ wod.id }}" class="form-control">
-                        <div><div class="btn btn-primary">Submit</div>
-                    </form>
-                </div>
-            </div>
-            <div class="col-md-10">
-                <h2>Leaderboard</h2>
-                {#                                        TODO if owner or admin allow delete <br>#}
-                {#                                        TODO Edit <br>#}
-                {#                                        TODO APIify#}
-                <table class="table js-wod-score-table">
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Score</th>
-                        <th>Comments</th>
-                        <th>Rx</th>
-                        <th></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+{#        <div class="row">#}
+{#            <div class="col-md-5" >#}
+{#                <table class="table">#}
+{#                    <thead>#}
+{#                    <tr>#}
+{#                        <th>Name</th>#}
+{#                        <th>Score</th>#}
+{#                        <th>Comments</th>#}
+{#                        <th>Rx</th>#}
+{#                        <th></th>#}
+{#                    </tr>#}
+{#                    </thead>#}
+{#                    <tbody>#}
+{#                        <tr ng-repeat="score in scores">#}
+{#                            <th>{:score.name:}</th>#}
+{#                            <th>{:score.score:}</th>#}
+{#                            <th>{:score.comments:}</th>#}
+{#                            <th>{:score.rx:}</th>#}
+{#                            <th></th>#}
+{#                        </tr>#}
+{#                    </tbody>#}
+{#                </table>#}
+{#            </div>#}
+{#        </div>#}
         <br>
     </div>
     {% block javascripts %}
         {{ parent() }}
         <script>
-            $(document).ready(function() {
-                var $table = $('.js-wod-score-table');
+            app.filter('trustAsHtml', ['$sce', function($sce){
+                return function(val) {
+                    return $sce.trustAsHtml(val);
+                };
+            }]);
+            app.controller("RxWodCtrl", function($scope, $http) {
+                console.log('RxWodCtrl')
+                $scope.loadedPage = 1;
+                $scope.clickButton = false;
+                $scope.lift_record = [];
+                $scope.lift_history = [];
+                $scope.editScore = false;
+                $scope.wod = [];
+                $scope.addForm = [];
 
-                function convertFormToJSON(form) {
-                    const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
-                    const json = {};
-                    $.each(array, function () {
-                        json[this.name] = this.value || "";
-                    });
-                    return json;
+                $scope.wodHasLift = false;
+                $scope.todaysWod = '';
+
+                $scope.getLiftRecordsFor = function () {
+                    var text = $scope.wod.wod;
+                    text = text.split('<br/><br/>')
+
+                    $scope.todaysWod = text[2] || '';
+
+                    $scope.todaysWod = $scope.todaysWod.split('3.Daily Task')[1]
+
+                    var ex = text[1].split('<br/>') || '';
+
+                    $scope.wodHasLift = ex[0].includes('Lift');
+
+                    if ($scope.wodHasLift) {
+                        $http({
+                            url: '../api/lift_records.json?exercise=' + ex[1],
+                            method: 'GET',
+                        }).then(function(response) {
+                            console.log(response)
+                            $scope.lift_history = response.data;
+                        });
+                    }
                 }
 
-                $('.js-new-wod-form').unbind('click').find('.btn-primary').on('click', function (e) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
+                $scope.getWod = function () {
+                    $http({
+                        url: '../api/wods/{{ wod.id }}',
+                        method: 'GET',
+                    }).then(function(response) {
+                        $scope.wod = response.data;
 
-                    var newLeaderboardUrl = $(this).closest('form').data('url');
-                    var $form = $(this).closest('form');
+                        var text = $scope.wod.wod;
+                        text = text.split('<br/><br/>')
 
-                    var json = convertFormToJSON($form);
+                        text = text[2] || '';
 
-                    json.wod = parseInt(json.wod);
-                    json.rx = json.rx == 'on' ? 1 : 0;
+                        text = text.split('3.Daily Task')[1]
 
-                    if (json.name_dropdown != '' && json.name == '') {
-                        json.name = json.name_dropdown
-                    }
-                    console.log(json);
+                        text = text.split('<br/>')
+                        text = text.filter(item => item).join('\n');
+                        $scope.addForm.comments = text;
+console.log(text);
+                        $scope.getLeaderboard();
+                        $scope.getLiftRecordsFor();
+                    });
+                }
 
-                    var self = this;
-                    $.ajax({
-                        url: newLeaderboardUrl,
-                        method: 'POST',
-                        dataType: 'json',
-                        data: JSON.stringify(json),
-                        contentType: 'application/json',
-                    }).then(function (data) {
-                        // $table.find('tr').remove();
-                        $(".js-new-wod-form")[0].reset();
+                $scope.getWod();
+                $scope.score = {};
 
-
-
-
-                        loadLeaderboard();
-                    })
-                });
-
-                var loadLeaderboard = function () {
-                    if ($('.js-wod-score-table').find('tr.loader').length > 0) {
-                        return;
-                    }
-
-                    $table.append('<tr class="loader"><td colspan="5" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
-
-                    $.ajax({
+                $scope.getLeaderboard = function () {
+                    $http({
                         url: '../api/leaderboards.json?wod=' + {{ wod.id }},
                         method: 'GET',
-                    }).then(function(data) {
-                        $('tr.loader').remove();
+                    }).then(function(response) {
+                        $scope.getLiftRecordsByWodFor();
 
-                        $.each(data, function(d, dat) {
-                            dat.dateCreated = new Date(dat.dateCreated);
-
-                            console.log(dat.dateCreated);
-
-                            var html = '<tr data-url="../leaderboards/edit/' + dat.id + '"><td>'+dat.name +'</td><td>'+ dat.score +'</td>' +
-                                '<td>'+ (dat.comments ? dat.comments : '') +'</td><td>'+ (dat.rx ? 'Yes' : 'No') +'</td><td>'+ dat.dateCreated.toDateString() +'</td>' +
-                                '<td><a href="#"><span class="fa fa-trash js-delete-wod" data-url="../api/leaderboards/' + dat.id + '"></span></a></td></tr>';
-                            $table.append(html);
-
-                        });
-                        deleteWod();
-                    });
-                };
-
-                loadLeaderboard();
-
-                var handleDeleteLeaderBoard = function (e) {
-                    e.preventDefault();
-                    var $link = $(e.currentTarget);
-                    var deleteUrl = $link.data('url');
-
-                    $link.addClass('text-danger');
-                    $link.find('.fa')
-                        .removeClass('fa-trash')
-                        .addClass('fa-spinner')
-                        .addClass('fa-spin');
-
-                    var $row = $link.closest('tr');
-                    $.ajax({
-                        url: deleteUrl,
-                        method: 'DELETE',
-                    }).then(function() {
-                        $row.fadeOut();
-                    }).catch(function (arg) {
-                    });
-                };
-
-                var deleteWod = function () {
-                    $('.fa-trash').on('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleDeleteLeaderBoard(e);
+                        // if (!$scope.addForm.comments) {
+                        //     $scope.addForm.comments = $scope.todaysWod.replaceAll('<br\/>', '\n');
+                        // }
+                        $scope.scores = response.data;
                     });
                 }
 
-                $table.on(
-                    'click',
-                    'tbody tr',
-                    function (e) {
-                        // e.preventDefault();
-                        var $link = $(e.currentTarget);
-                        var scoreEditUrl = $link.data('url');
-                        // console.log($link, scoreEditUrl);
-                        window.location.href = scoreEditUrl;
+                $scope.addScore = function () {
+                    {#score.wod = {{ wod.id }};#}
+                    // console.log(score)
+                    var data = {
+                        wod: {{ wod.id }},
+                        name: 'Will',//score.name,
+                        score: $scope.addForm.score,
+                        comments: $scope.addForm.comments,
                     }
-                );
-                // }
+
+                    $http({
+                        url: '../api/leaderboards',
+                        data: data,
+                        method: 'POST',
+                    }).then(function(response) {
+                        $scope.getLeaderboard();
+                    });
+                }
+
+                $scope.editWodScore = function () {
+                    var data = {
+                        score: $scope.addForm.score,
+                        comments: $scope.addForm.comments,
+                    }
+
+                    $http({
+                        url: '../api/leaderboards/' + $scope.scores[0].id,
+                        data: data,
+                        method: 'PUT',
+                    }).then(function(response) {
+                        $scope.getLeaderboard();
+                        $scope.editScore = false;
+                    });
+                }
+
+                $scope.showLifts = false;
+                $scope.enterScore = false;
+
+                $scope.liftRecords = function () {
+                    $scope.showLifts = !$scope.showLifts;
+                    $scope.showNewScore = false;
+                }
+
+                $scope.enterScore = function () {
+                    $scope.showNewScore = !$scope.showNewScore;
+                    $scope.showLifts = false;
+                }
+
+                $scope.getLiftRecordsByWodFor = function () {
+                    $http({
+                        url: '../api/lift_records.json?wodId='+ {{ wod.id }},
+                        method: 'GET',
+                    }).then(function(response) {
+                        $scope.lift_record = response.data;
+                    });
+                }
+
+                $scope.showScoreEdit = false;
+
+                $scope.showLiftScoreEdit = function() {
+                    $scope.showScoreEdit = !$scope.showScoreEdit;
+                }
+
+                {#$scope.editLiftScore = function () {#}
+                {#    var data = {#}
+                {#        weight: parseInt($scope.lift_record[0].weight),#}
+                {#    }#}
+                {#    $http({#}
+                {#        url: '../../api/lift_records/' + {{ lift_record_id }}, // todo where wod_id = wod.id#}
+                {#        data: data,#}
+                {#        method: 'PUT',#}
+                {#    }).then(function(response) {#}
+                {#        $scope.showScoreEdit = !$scope.showScoreEdit;#}
+                {#    });#}
+                {#}#}
+                {#$scope.getLeaderboard();#}
+
+                {#$scope.getWod();#}
+
+                {#$scope.deleteWod = function (id) {#}
+                {#    $http({#}
+                {#        url: '../api/wods/' + id,#}
+                {#        method: 'DELETE',#}
+                {#    }).then(function(response) {#}
+                {#        // $scope.getWods();#}
+                {#    });#}
+                {#}#}
             });
+
         </script>
     {% endblock %}
 {% endblock %}

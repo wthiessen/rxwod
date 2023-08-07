@@ -10,12 +10,12 @@
                             <div class="col">
                                 <div class="q-container-show q-display p-3">
                                     <h2>Edit Wod {{ wod.createdAt|date("Y-m-d") }}</h2>
-
+                                    {{ wod.wod }}
                                     <div class="form-group">
                                         <div class="form-group">
                                             <form class="form-inline js-new-wod-form" novalidate data-url="../../api/wods/{{ wod.id }}">
                                                 <div><label for="date">Date</label> <input type="date" name="createdAt" value="{{ wod.createdAt|date("Y-m-d") }}" class="form-control"></div><br>
-                                                <div><label for="wod">Wod </label> <textarea rows="4" style="width: 33%; height: 300px; display: block; resize: vertical;" name="wod">{{ wod.wod|striptags }}</textarea></div>
+                                                <div><label for="wod">Wod </label> <textarea rows="4" style="width: 33%; height: 300px; display: block; resize: vertical;" name="wod">{{ wod.wod }}</textarea></div>
                                                 <br>
                                                 <div><div class="btn btn-primary">Submit</div>
                                                 <div><a href="{{ path('app_wod_show', {'id': wod.id}) }}"><div class="btn btn-primary">Cancel</div></a></div>

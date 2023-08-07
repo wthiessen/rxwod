@@ -6,14 +6,17 @@ use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\LiftRecordRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 
 /**
  *  @ApiResource(
  *     normalizationContext={"groups"={"lift_record:read"}},
  *     denormalizationContext={"groups"={"lift_record:write"}},
- *     attributes={"order"={"createdAt": "DESC"}},
+ *     attributes={"order"={"createdAt": "DESC"}, "pagination_items_per_page"=3},
  * )
  * @ORM\Entity(repositoryClass=LiftRecordRepository::class)
+ * @ApiFilter(SearchFilter::class, properties={"exercise": "partial", "wodId": "exact"})
  */
 class LiftRecord
 {
@@ -26,22 +29,28 @@ class LiftRecord
     private $id;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     * @Groups({"lift_record:read", "lift_record:write"})
+     */
+    private $weight;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     * @Groups({"lift_record:read", "lift_record:write"})
+     */
+    private $wodId;
+
+    /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"lift_record:read", "lift_record:write"})
      */
     private $exercise;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups({"lift_record:read", "lift_record:write"})
      */
     private $repScheme;
-
-    /**
-     * @ORM\Column(type="integer")
-     * @Groups({"lift_record:read", "lift_record:write"})
-     */
-    private $weight;
 
     /**
      * @ORM\Column(type="datetime_immutable")
@@ -123,5 +132,21 @@ class LiftRecord
         $this->comment = $comment;
 
         return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getWodId(): int
+    {
+        return $this->wodId;
+    }
+
+    /**
+     * @param int $wodId
+     */
+    public function setWodId($wodId): self
+    {
+        $this->wodId = $wodId;
     }
 }
