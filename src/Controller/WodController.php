@@ -4,10 +4,12 @@ namespace App\Controller;
 
 use App\Entity\Exercise;
 use App\Entity\Leaderboard;
+use App\Entity\LiftRecord;
 use App\Entity\Wod;
 use App\Repository\ExerciseRepository;
 use App\Repository\ExerciseTypeRepository;
 use App\Repository\LeaderboardRepository;
+use App\Repository\LiftRecordRepository;
 use App\Repository\UserRepository;
 use App\Repository\WodRepository;
 use Doctrine\ORM\EntityManager;
@@ -25,11 +27,12 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use DateTimeImmutable;
 use DateInterval;
+use PhpParser\Builder\Method;
 
 class WodController extends AbstractController
 {
     /**
-    //  * @Route("/wod", name="wod_list")
+      * @Route("/wod", name="wod_list")
      */
     public function index(ExerciseRepository $exerciseRepository, WodRepository $wodRepository)
     {
@@ -39,16 +42,22 @@ class WodController extends AbstractController
     }
 
     /**
-    //  * @Route("wod/{id<\d+>}", name="app_wod_show")
+      * @Route("/wodnew", name="wod_angular")
      */
-    public function show($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository, MarkdownParserInterface $markdownParser)
+    public function wodnew(ExerciseRepository $exerciseRepository, WodRepository $wodRepository)
+    {
+        return $this->render('wod/index.html', [
+//            'wods' => [],
+        ]);
+    }
+
+    /**
+      * @Route("wod/{id<\d+>}", name="app_wod_show")
+     */
+    public function show($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository, LiftRecordRepository $liftRecordRepository, MarkdownParserInterface $markdownParser)
     {
         /** @var Wod|null $wod */
         $wod = $wodRepository->find($id);
-
-        if (!$wod) {
-            $this->redirectToRoute('wod_list');
-        }
 
         /** @var Leaderboard|null $leaderboard */
         $userNames = $leaderboardRepository->findAllNames();
@@ -61,11 +70,19 @@ class WodController extends AbstractController
         /** @var Wod|null $wod */
         $nextWod = $wodRepository->findOneNextId($wod->getId());
 
+        /** @var LiftRecord|null $liftRecord */
+        $liftRecord = $liftRecordRepository->findBy(['wodId' => $wod->getId()]);
+
+        if ($liftRecord) {
+            $liftRecord = $liftRecord[0];
+        }
+
         /** @var array|null */
         $previousWod = $wodRepository->findOnePreviousId($wod->getId());
 
         return $this->render('wod/show.html.twig', [
             'wod' => $wod,
+            'lift_record_id' => $liftRecord ? $liftRecord->getId() : null,
             'next_wod' => $nextWod ? $nextWod->getId() : null,
             'previous_wod' => end($previousWod) ? end($previousWod)->getId() : null,
             'userNames' => $names,
@@ -73,7 +90,7 @@ class WodController extends AbstractController
     }
 
     /**
-    //  * @Route("wod/edit/{id<\d+>}", name="app_wod_edit")
+      * @Route("wod/edit/{id<\d+>}", name="app_wod_edit")
      */
     public function edit($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository, MarkdownParserInterface $markdownParser)
     {
@@ -92,69 +109,93 @@ class WodController extends AbstractController
     /**
     * @Route("wod/import", name="app_wod_import")
      */
-    public function import(EntityManagerInterface $entityManager, WodRepository $wodRepository, Request $request)
+    public function import(EntityManagerInterface $entityManager, WodRepository $wodRepository, LiftRecordRepository $liftRecordRepository, Request $request)
     {
         if ($request->isMethod('post')) {
             $createdAt = $request->request->get('createdAt');
             $wods = $request->request->get('wod');
 
-            $wods = trim($wods);
-            $textArray = explode("\n", $wods);
+//            $textArray = explode("Matt", $wods);
+            $textArray = explode("<b>", $wods);
+//            }
 
+//unset($textArray[0]);
+//$textArray = array_values($textArray);
+//unset($textArray[5]);
             $dates = array();
             $weekdays = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday');
-            $currentWeekday = '';
-            $currentArray = array();
-            $arrayItems = [];
 
-            $current_day = '';
-            $pattern = '/\((.*)\)/';
-            $prev_day = '';
             $wods = [];
-            $temp = '';
-
             $date = $createdAt;
-
-            foreach ($textArray as $line) {
-                if (preg_match($pattern, $line, $matches, PREG_OFFSET_CAPTURE)) {
-                    if (in_array($matches[1][0], $weekdays)) {
-                        $temp = '';
-                        if (!isset($temp[$matches[1][0]])) {
-                            $temp .= $line;
-
-                            $current_day = $matches[1][0];
-                        }
-
-                    }
-                } else {
-                    $temp .= $line;
+//echo '<pre>';
+//dd($textArray);
+//echo '</pre>';
+//die;
+            foreach ($textArray as $key => $wod) {
+                foreach ($weekdays as $wd_key => $weekday) {
+                    $wod = str_replace('</b>', '', $wod);
+                    $wods[$weekdays[$key]] = $wod;
                 }
-                $wods[$current_day] = $temp;
             }
 
             $dateimm = '';
-
             $last_date = '';
-
             $date = date('Y-m-d', strtotime($date. '-1 day'));
 
-            foreach ($wods as $day =>$wod) {
-                $newWod = new Wod();
+            foreach ($wods as $day => $wod) {
+//                $wod = explode('<br/><br/>', $wod);
 
                 $date = date('Y-m-d', strtotime($date.'+1 day'));
-
                 $dateimm = new DateTimeImmutable($date);
+                $temp = [];
 
-                $newWod->setWod(trim($wod))
+//                foreach ($wod as $w) {
+//                    if (!empty($w)) {
+//                        $temp[] = $w;
+//                    }
+
+                    // if contains "Lift", put in lift records
+//                    if (strstr($w, 'Lift')) {
+//                        $w = trim($w);
+
+//                        $lift = str_replace('2.Lift', '', $w);
+//                        $lift = str_replace('2. Lift', '', $w);
+
+//                        $lift = explode('<br/>', $w);
+
+//echo '<pre>';
+//var_dump($lift);
+//echo '</pre>';
+//die;
+//                        $exercise = $lift[1];
+//                        $rep_scheme = $lift[2];
+//                        $comment = $lift[3];
+//
+//                        $newLiftRecord = new LiftRecord();
+//                        $newLiftRecord->setExercise($exercise)
+//                            ->setRepScheme($rep_scheme)
+//                            ->setComment($comment)
+//                            ->setCreatedAt($dateimm);
+
+//                        $entityManager->persist($newLiftRecord);
+//                        $entityManager->flush();
+//                    }
+//                }
+//                $wod = $temp;
+                $newWod = new Wod();
+                $newLiftRecord = new LiftRecord();
+
+//                $wod = implode('\n', $wod);
+//                $wod = json_encode($wod);
+
+                $newWod->setWod($wod)
                     ->setCreatedAt($dateimm);
-
-//                $last_date = strtotime($date);
 
                 $entityManager->persist($newWod);
                 $entityManager->flush();
-
             }
-
+            echo 'done';
+//die;
             $this->redirectToRoute('wod_list');
         }
 
