@@ -27,8 +27,8 @@
                                 <h3>WOD</h3>
                                 <span ng-bind-html="wod.wod|trustAsHtml"></span>
                                 <br><br>
-                                <div ng-click="editScore = !editScore">
-                                    <div>{:scores[0].score:} {:scores[0].comments:}</div>
+                                <div ng-if="scores" ng-click="editScore = !editScore">
+                                    <div><b>My Score</b><br>{:scores[0].score:}<br>{:scores[0].comments|trustAsHtml:}</div>
                                 </div>
                                 <div ng-if="!scores[0].score || editScore">
                                     <h3>Score</h3>
@@ -57,7 +57,7 @@
                                     </div>
                                 </div>
 
-                                <div xng-if="wodHasLift">
+                                <div ng-if="wodHasLift">
                                     <div><label for="weight">Lift Weight:</label>
                                         <span ng-show="!showScoreEdit" ng-click="showLiftScoreEdit()" ng-bind="lift_record[0].weight"></span>
                                         <input xng-show="showScoreEdit" type="text" ng-model="lift_record[0].weight" width="10">
@@ -98,30 +98,6 @@
                 </div>
             </div>
         </div>
-{#        <div class="row">#}
-{#            <div class="col-md-5" >#}
-{#                <table class="table">#}
-{#                    <thead>#}
-{#                    <tr>#}
-{#                        <th>Name</th>#}
-{#                        <th>Score</th>#}
-{#                        <th>Comments</th>#}
-{#                        <th>Rx</th>#}
-{#                        <th></th>#}
-{#                    </tr>#}
-{#                    </thead>#}
-{#                    <tbody>#}
-{#                        <tr ng-repeat="score in scores">#}
-{#                            <th>{:score.name:}</th>#}
-{#                            <th>{:score.score:}</th>#}
-{#                            <th>{:score.comments:}</th>#}
-{#                            <th>{:score.rx:}</th>#}
-{#                            <th></th>#}
-{#                        </tr>#}
-{#                    </tbody>#}
-{#                </table>#}
-{#            </div>#}
-{#        </div>#}
         <br>
     </div>
     {% block javascripts %}
@@ -149,13 +125,11 @@
                     var text = $scope.wod.wod;
                     text = text.split('<br/><br/>')
 
-                    $scope.todaysWod = text[2] || '';
-
-                    $scope.todaysWod = $scope.todaysWod.split('3.Daily Task')[1]
-
-                    var ex = text[1].split('<br/>') || '';
-
-                    $scope.wodHasLift = ex[0].includes('Lift');
+                    var ex = '';
+                    if (text) {
+                        ex = text[1].split('<br/>') || '';
+                        $scope.wodHasLift = ex[0].includes('Lift');
+                    }
 
                     if ($scope.wodHasLift) {
                         $http({
@@ -176,16 +150,31 @@
                         $scope.wod = response.data;
 
                         var text = $scope.wod.wod;
+
                         text = text.split('<br/><br/>')
 
-                        text = text[2] || '';
+                        if (text && !$scope.scores) {
+                            text = text[2] || '';
 
-                        text = text.split('3.Daily Task')[1]
+                            if (text) {
+                                text = text.split('3.Daily Task')[1]
+                            }
 
-                        text = text.split('<br/>')
-                        text = text.filter(item => item).join('\n');
-                        $scope.addForm.comments = text;
-console.log(text);
+                            if (text) {
+                                text = text.split('<br/>')
+                            }
+
+                            text = text.filter(item => item);
+
+                            if (text[0].toLowerCase().includes('emom') || text[0].toLowerCase().includes('amrap')) {
+                                $scope.addForm.score = text[0].toUpperCase();
+                                text.splice(0, 1)
+                            }
+
+                            $scope.addForm.comments = text.join('\n');
+                        }
+
+// console.log(text);
                         $scope.getLeaderboard();
                         $scope.getLiftRecordsFor();
                     });
@@ -200,10 +189,6 @@ console.log(text);
                         method: 'GET',
                     }).then(function(response) {
                         $scope.getLiftRecordsByWodFor();
-
-                        // if (!$scope.addForm.comments) {
-                        //     $scope.addForm.comments = $scope.todaysWod.replaceAll('<br\/>', '\n');
-                        // }
                         $scope.scores = response.data;
                     });
                 }
