@@ -143,10 +143,11 @@ class LiftRecord
     }
 
     /**
-     * @param int $wodId
      */
-    public function setWodId($wodId): self
+    public function setWodId(?int $wodId): int
     {
         $this->wodId = $wodId;
+
+        return $wodId;
     }
 }

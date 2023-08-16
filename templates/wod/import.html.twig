@@ -31,11 +31,11 @@
                 url: 'https://api.glofox.com/2.2/branches/5e0b628a4d98ae04e31a1d0a/announcements/',
                 method: 'GET',
                 headers:{
-                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Il9pZCI6IjVlNTY5YzYyODg0NDI0MGU5ZDM1NGRhYyIsImJyYW5jaF9pZCI6IjVlMGI2MjhhNGQ5OGFlMDRlMzFhMWQwYSIsIm5hbWVzcGFjZSI6ImNyb3NzZml0cmV2YSIsImFjdGl2ZSI6dHJ1ZSwiZmlyc3RfbmFtZSI6IldpbGxpYW0iLCJsYXN0X25hbWUiOiJUaGllc3NlbiIsInBob25lIjoiOTA1MzU5OTY0NCIsImVtYWlsIjoid3RoaWVzc2VuQHByb3Rvbm1haWwuY29tIiwidHlwZSI6Ik1FTUJFUiIsIm5hbWUiOiJXaWxsaWFtIFRoaWVzc2VuIiwiaXNTdXBlckFkbWluIjpmYWxzZX0sImlhdCI6MTY4ODU2OTI2MywiZXhwIjoxNjkwMjk3MjYzfQ.BOobRWwrl-2JdtWCEknoyJkPgLiBssf_Oi7ZMcveexs'
+                    Authorization: 'Bearer ' + '{{ secret }}'
                 }
             }).then(function(response) {
                 var content = response.data.data[0].content;
-
+console.log(content);
                 content = content.split('Matt')[1];
                 // content = content.split('<br/><br/>');
 

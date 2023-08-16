@@ -119,9 +119,9 @@ class WodController extends AbstractController
             $textArray = explode("<b>", $wods);
 //            }
 
-//unset($textArray[0]);
-//$textArray = array_values($textArray);
-//unset($textArray[5]);
+unset($textArray[0]);
+$textArray = array_values($textArray);
+unset($textArray[5]);
             $dates = array();
             $weekdays = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday');
 
@@ -199,7 +199,10 @@ class WodController extends AbstractController
             $this->redirectToRoute('wod_list');
         }
 
+
+
         return $this->render('wod/import.html.twig', [
+            'secret' => $_ENV['GLOFOX_TOKEN']
         ]);
 
     }
