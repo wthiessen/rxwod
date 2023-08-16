@@ -51,6 +51,7 @@
             <a class="navbar-brand" href="{{ path('wod_list') }}">Wods</a>
             <a class="navbar-brand" href="{{ path('leader_board') }}">Leader Board</a>
             <a class="navbar-brand" href="{{ path('lift_records') }}">Lift Records </a>
+            <a class="navbar-brand" href="{{ path('app_wod_import') }}">Wods Import</a>
 {#            {{ path('homepage') }}#}
         </div>
         <div class="navbar-collapse collapse">
@@ -63,14 +64,13 @@
                             <li>
                                 <a href="#">
 {#                                    {{ path('lift') }}#}
-                                    <img class="mini-dumbbell" src="">
+                                    <img class="mini-dumbbell" src="" alt="Dumbbell">
 {#                                    {{ asset('assets/images/dumbbell.png') }}#}
                                     Lift Stuff
                                 </a>
                             </li>
                             <li>
-                                <a href="#">
-{#                                    {{ path('fos_user_security_logout') }}#}
+                                <a href="{{ path('app_logout') }}">
                                     <span class="fa fa-sign-out"></span>
                                     Logout
                                 </a>
