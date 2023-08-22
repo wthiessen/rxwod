@@ -1,8 +1,9 @@
 {% extends 'base.html.twig' %}
+
 {% block body %}
     <div class="container" ng-app="myApp" ng-controller="rxWodsCtrl">
         <div class="row">
-            <h2>
+            <h2>{{ asset('static/js/app.js') }}
                <span class="add-wod-form">Wods</span>
                 <span class="add-wod-form-2 hidden">Add Wod</span>
                 <a href="#list-stuff-form" class="btn btn-md btn-success pull-right add-wod-form">
@@ -65,122 +66,67 @@
             // TODO move to external file
             // TODO refactor to object
 
-            $(document).ready(function() {
-                // var $table = $('.js-wod-log-table');
-
-                function convertFormToJSON(form) {
-                    const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
-                    const json = {};
-                    $.each(array, function () {
-                        json[this.name] = this.value || "";
-                    });
-                    return json;
-                }
-
-
-                $('.add-wod-form').on('click', function (e) {
-                    $('.add-wod.hidden:first').removeClass("hidden");
-                    $('.js-wod-log-table').addClass("hidden");
-                    $('.add-wod-form').addClass("hidden");
-                    $('.add-wod-form-2').removeClass("hidden");
-                });
-
-                $('.js-new-wod-form').unbind('click').find('.btn-primary').on('click', function (e) {
-                    e.preventDefault();
-
-                    var newWodUrl = $(this).closest('form').data('url');
-                    var $form = $(this).closest('form');
-
-                    var json = convertFormToJSON($form);
-                    var self = this;
-                    $.ajax({
-                        url: newWodUrl,
-                        method: 'POST',
-                        dataType: 'json',
-                        data: JSON.stringify(json),
-                        contentType: 'application/json',
-                        success: function(result){
-                            $('.add-wod').addClass("hidden");
-                            $('.js-wod-log-table.hidden:first').removeClass("hidden");
-                            $('.add-wod-form').removeClass("hidden");
-                            $('.add-wod-form-2').addClass("hidden");
-                        },
-                        error: function(request,status,errorThrown) {
-                        }
-                    });
-
-                });
-
-                var handleRepLogDelete = function (e) {
-                    e.preventDefault();
-                    var $link = $(e.currentTarget);
-                    var deleteUrl = $link.data('url');
-
-                    $link.addClass('text-danger');
-                    $link.find('.fa')
-                        .removeClass('fa-trash')
-                        .addClass('fa-spinner')
-                        .addClass('fa-spin');
-
-                    var $row = $link.closest('tr');
-                        $row.fadeOut();
-                };
-            });
+            // $(document).ready(function() {
+            //     // var $table = $('.js-wod-log-table');
+            //
+            //     function convertFormToJSON(form) {
+            //         const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
+            //         const json = {};
+            //         $.each(array, function () {
+            //             json[this.name] = this.value || "";
+            //         });
+            //         return json;
+            //     }
+            //
+            //
+            //     $('.add-wod-form').on('click', function (e) {
+            //         $('.add-wod.hidden:first').removeClass("hidden");
+            //         $('.js-wod-log-table').addClass("hidden");
+            //         $('.add-wod-form').addClass("hidden");
+            //         $('.add-wod-form-2').removeClass("hidden");
+            //     });
+            //
+            //     $('.js-new-wod-form').unbind('click').find('.btn-primary').on('click', function (e) {
+            //         e.preventDefault();
+            //
+            //         var newWodUrl = $(this).closest('form').data('url');
+            //         var $form = $(this).closest('form');
+            //
+            //         var json = convertFormToJSON($form);
+            //         var self = this;
+            //         $.ajax({
+            //             url: newWodUrl,
+            //             method: 'POST',
+            //             dataType: 'json',
+            //             data: JSON.stringify(json),
+            //             contentType: 'application/json',
+            //             success: function(result){
+            //                 $('.add-wod').addClass("hidden");
+            //                 $('.js-wod-log-table.hidden:first').removeClass("hidden");
+            //                 $('.add-wod-form').removeClass("hidden");
+            //                 $('.add-wod-form-2').addClass("hidden");
+            //             },
+            //             error: function(request,status,errorThrown) {
+            //             }
+            //         });
+            //
+            //     });
+            //
+            //     var handleRepLogDelete = function (e) {
+            //         e.preventDefault();
+            //         var $link = $(e.currentTarget);
+            //         var deleteUrl = $link.data('url');
+            //
+            //         $link.addClass('text-danger');
+            //         $link.find('.fa')
+            //             .removeClass('fa-trash')
+            //             .addClass('fa-spinner')
+            //             .addClass('fa-spin');
+            //
+            //         var $row = $link.closest('tr');
+            //             $row.fadeOut();
+            //     };
+            // });
         </script>
 {% endblock %}
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        app.controller("rxWodsCtrl", function($scope, $http) {
 
-            $scope.loadedPage = 1;
-
-            $scope.nextPage = function () {
-                if ($scope.loadedPage > 1) {
-                    $scope.loadedPage++;
-                }
-                $scope.getWods();
-            }
-
-            $scope.prevPage = function () {
-                if ($scope.loadedPage > 1) {
-                    $scope.loadedPage--;
-                }
-                $scope.getWods();
-            }
-
-            $scope.gotoPage = function (page) {
-                if (page > 1) {
-                    $scope.loadedPage = page;
-                }
-                $scope.getWods();
-            }
-
-            $scope.getWods = function () {
-                $http({
-                    url: 'api/wods.json?page=' + $scope.loadedPage,
-                    method: 'GET',
-                }).then(function(response) {
-                    $scope.wods = response.data;
-                });
-            }
-
-            $scope.getWods();
-
-            $scope.getWod = function (id) {
-                console.log('getwod')
-                window.location.href = 'wod/' + id;
-            }
-
-            $scope.deleteWod = function (id) {
-                $http({
-                    url: 'api/wods/' + id,
-                    method: 'DELETE',
-                }).then(function(response) {
-                    $scope.getWods();
-                });
-            }
-        });
-    </script>
-
-{% endblock %}

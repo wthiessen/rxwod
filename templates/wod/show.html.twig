@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container" ng-app="myApp" ng-controller="RxWodCtrl">
+    <div class="container" ng-app="myApp" ng-controller="RxWodCtrl" data-wod-id="{{ wod.id }}">
         <div class="row">
             <div class="col-12">
                 <div class="q-container-show p-4">
@@ -9,7 +9,7 @@
                         <div class="col-md-9">
                             <span>
                                 <h2>
-                                    Wod {{ wod.createdAt|date("Y-m-d") }}
+                                   Wod {{ wod.createdAt|date("Y-m-d") }}
 
                                 <a href="edit/{{ wod.id }}" class="btn btn-md btn-success pull-right">
                                     <span class="fa fa-edit"></span> Edit
@@ -26,11 +26,13 @@
                             <div class="col-md-3">
                                 <h3>WOD</h3>
                                 <span ng-bind-html="wod.wod|trustAsHtml"></span>
-                                <br><br>
-                                <div ng-if="scores" ng-click="editScore = !editScore">
+                                <br>
+{#                                ng-if="scores"#}
+                                <div xng-if="!editScore" ng-click="editScore = !editScore">
                                     <div><b>My Score</b><br>{:scores[0].score:}<br>{:scores[0].comments|trustAsHtml:}</div>
                                 </div>
-                                <div ng-if="!scores[0].score || editScore">
+                                <div ng-if="editScore">
+{#                                    !scores[0].score || #}
                                     <h3>Score</h3>
                                     <div class="form-group">
                                         <form class="form-inline">
@@ -50,7 +52,7 @@
                                             </table>
 
                                             <input type="hidden" name="wod" ng-model="score.wod" value="{{ wod.id }}" class="form-control">
-                                            <div ng-show="!scores[0].id" class="btn btn-primary" ng-click="addScore(score)">Add</div>
+                                            <div ng-show="!scores[0].id" class="btn btn-primary" ng-click="addScore()">Add</div>
                                             <div ng-show="scores[0].id" class="btn btn-primary" ng-click="editWodScore()">Edit</div>
 {#                                            <div><div class="btn btn-primary" ng-click="scores[0].ID ? editScore() : addScore(score)">Edit</div>#}
                                         </form>
@@ -62,7 +64,8 @@
                                         <span ng-show="!showScoreEdit" ng-click="showLiftScoreEdit()" ng-bind="lift_record[0].weight"></span>
                                         <input xng-show="showScoreEdit" type="text" ng-model="lift_record[0].weight" width="10">
                                     </div><br>
-                                    <div><div xng-show="showScoreEdit" class="btn btn-primary" ng-click="editLiftScore()">Submit</div>
+                                    <div><div xng-show="showScoreEdit" class="btn btn-primary" ng-click="addLiftScore()">Submit</div>
+{#                                    <div><div xng-show="showScoreEdit" class="btn btn-primary" ng-click="editLiftScore()">Submit</div>#}
                                 </div>
 {#                                <br>#}
 <!--                                <span ng-click="enterScore()" ng-bind-html="wod.wod[2]|trustAsHtml"></span>-->
@@ -100,188 +103,5 @@
         </div>
         <br>
     </div>
-    {% block javascripts %}
-        {{ parent() }}
-        <script>
-            app.filter('trustAsHtml', ['$sce', function($sce){
-                return function(val) {
-                    return $sce.trustAsHtml(val);
-                };
-            }]);
-            app.controller("RxWodCtrl", function($scope, $http) {
-                console.log('RxWodCtrl')
-                $scope.loadedPage = 1;
-                $scope.clickButton = false;
-                $scope.lift_record = [];
-                $scope.lift_history = [];
-                $scope.editScore = false;
-                $scope.wod = [];
-                $scope.addForm = [];
-
-                $scope.wodHasLift = false;
-                $scope.todaysWod = '';
-
-                $scope.getLiftRecordsFor = function () {
-                    var text = $scope.wod.wod;
-                    text = text.split('<br/><br/>')
-
-                    var ex = '';
-                    if (text) {
-                        ex = text[1].split('<br/>') || '';
-                        $scope.wodHasLift = ex[0].includes('Lift');
-                    }
-
-                    if ($scope.wodHasLift) {
-                        $http({
-                            url: '../api/lift_records.json?exercise=' + ex[1],
-                            method: 'GET',
-                        }).then(function(response) {
-                            console.log(response)
-                            $scope.lift_history = response.data;
-                        });
-                    }
-                }
-
-                $scope.getWod = function () {
-                    $http({
-                        url: '../api/wods/{{ wod.id }}',
-                        method: 'GET',
-                    }).then(function(response) {
-                        $scope.wod = response.data;
-
-                        var text = $scope.wod.wod;
-
-                        text = text.split('<br/><br/>')
-
-                        if (text && !$scope.scores) {
-                            text = text[2] || '';
-
-                            if (text) {
-                                text = text.split('3.Daily Task')[1]
-                            }
-
-                            if (text) {
-                                text = text.split('<br/>')
-                            }
-
-                            text = text.filter(item => item);
-
-                            if (text[0].toLowerCase().includes('emom') || text[0].toLowerCase().includes('amrap')) {
-                                $scope.addForm.score = text[0].toUpperCase();
-                                text.splice(0, 1)
-                            }
-
-                            $scope.addForm.comments = text.join('\n');
-                        }
-
-// console.log(text);
-                        $scope.getLeaderboard();
-                        $scope.getLiftRecordsFor();
-                    });
-                }
-
-                $scope.getWod();
-                $scope.score = {};
-
-                $scope.getLeaderboard = function () {
-                    $http({
-                        url: '../api/leaderboards.json?wod=' + {{ wod.id }},
-                        method: 'GET',
-                    }).then(function(response) {
-                        $scope.getLiftRecordsByWodFor();
-                        $scope.scores = response.data;
-                    });
-                }
-
-                $scope.addScore = function () {
-                    {#score.wod = {{ wod.id }};#}
-                    // console.log(score)
-                    var data = {
-                        wod: {{ wod.id }},
-                        name: 'Will',//score.name,
-                        score: $scope.addForm.score,
-                        comments: $scope.addForm.comments,
-                    }
-
-                    $http({
-                        url: '../api/leaderboards',
-                        data: data,
-                        method: 'POST',
-                    }).then(function(response) {
-                        $scope.getLeaderboard();
-                    });
-                }
-
-                $scope.editWodScore = function () {
-                    var data = {
-                        score: $scope.addForm.score,
-                        comments: $scope.addForm.comments,
-                    }
-
-                    $http({
-                        url: '../api/leaderboards/' + $scope.scores[0].id,
-                        data: data,
-                        method: 'PUT',
-                    }).then(function(response) {
-                        $scope.getLeaderboard();
-                        $scope.editScore = false;
-                    });
-                }
-
-                $scope.showLifts = false;
-                $scope.enterScore = false;
-
-                $scope.liftRecords = function () {
-                    $scope.showLifts = !$scope.showLifts;
-                    $scope.showNewScore = false;
-                }
-
-                $scope.enterScore = function () {
-                    $scope.showNewScore = !$scope.showNewScore;
-                    $scope.showLifts = false;
-                }
-
-                $scope.getLiftRecordsByWodFor = function () {
-                    $http({
-                        url: '../api/lift_records.json?wodId='+ {{ wod.id }},
-                        method: 'GET',
-                    }).then(function(response) {
-                        $scope.lift_record = response.data;
-                    });
-                }
-
-                $scope.showScoreEdit = false;
-
-                $scope.showLiftScoreEdit = function() {
-                    $scope.showScoreEdit = !$scope.showScoreEdit;
-                }
-
-                {#$scope.editLiftScore = function () {#}
-                {#    var data = {#}
-                {#        weight: parseInt($scope.lift_record[0].weight),#}
-                {#    }#}
-                {#    $http({#}
-                {#        url: '../../api/lift_records/' + {{ lift_record_id }}, // todo where wod_id = wod.id#}
-                {#        data: data,#}
-                {#        method: 'PUT',#}
-                {#    }).then(function(response) {#}
-                {#        $scope.showScoreEdit = !$scope.showScoreEdit;#}
-                {#    });#}
-                {#}#}
-                {#$scope.getLeaderboard();#}
-
-                {#$scope.getWod();#}
-
-                {#$scope.deleteWod = function (id) {#}
-                {#    $http({#}
-                {#        url: '../api/wods/' + id,#}
-                {#        method: 'DELETE',#}
-                {#    }).then(function(response) {#}
-                {#        // $scope.getWods();#}
-                {#    });#}
-                {#}#}
-            });
-
-        </script>
-    {% endblock %}
+</div>
 {% endblock %}

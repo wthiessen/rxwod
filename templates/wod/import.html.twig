@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container" ng-app="myApp" ng-controller="rxWodImportCtrl">
+    <div class="container" ng-app="myApp" ng-controller="rxWodImportCtrl" data-token="{{ secret }}" data-glofox-url="{{ glofox_url }}">
         <div class="row">
             <h2>
                 <span class="add-wod-form-2">Add Wods</span>
@@ -11,53 +11,12 @@
             <div class="form-group add-wod">
                 <form action="{{ path('app_wod_import') }}" method="POST">
                     <div><label for="date">Date</label> <input class="createdAt" type="date" name="createdAt" id="createdAt" value="{{ "now"|date("Y-m-d") }}" class="form-control" required></div><br>
-                    <div><label for="wod">Wod </label> <textarea style="width: 33%; height: 250px; display: block; resize: vertical;" name="wod" required>{:content:}</textarea></div>
+                    <div><label for="wod">Wod </label> <textarea style="width: 66%; height: 500px; display: block; resize: vertical;" name="wod" required>{:content:}</textarea></div>
                     <br>
                     <div><button type="submit">Submit</button>
                 </form>
             </div>
         </div>
     </div>
-
-{% endblock %}
-{% block javascripts %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js" integrity="sha512-KZmyTq3PLx9EZl0RHShHQuXtrvdJ+m35tuOiwlcZfs/rE7NZv29ygNA8SFCkMXTnYZQK2OX0Gm2qKGfvWEtRXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script>
-
-        var app = angular.module("myApp", []);
-        app.controller("rxWodImportCtrl", function($scope, $http) {
-
-            $http({
-                url: 'https://api.glofox.com/2.2/branches/5e0b628a4d98ae04e31a1d0a/announcements/',
-                method: 'GET',
-                headers:{
-                    Authorization: 'Bearer ' + '{{ secret }}'
-                }
-            }).then(function(response) {
-                var content = response.data.data[0].content;
-console.log(content);
-                content = content.split('Matt')[1];
-                // content = content.split('<br/><br/>');
-
-
-
-console.log(content);
-//                 content = content.replace(/<br\s*\/?>/mg,"\n");
-//                 content = content.replace(/<b>/mg,"");
-//                 content = content.replace(/<\/b>/mg,"");
-//                 content = content.replace(/<\/p>/mg,"");
-//                 content = content.replace(/<p>/mg,"");
-
-
-
-                $scope.content = content;
-            });
-
-        })
-            .config(function($interpolateProvider){
-                $interpolateProvider.startSymbol('{:').endSymbol(':}');
-            });
-    </script>
-
 {% endblock %}
 

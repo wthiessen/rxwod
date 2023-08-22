@@ -143,47 +143,54 @@ unset($textArray[5]);
             $date = date('Y-m-d', strtotime($date. '-1 day'));
 
             foreach ($wods as $day => $wod) {
-//                $wod = explode('<br/><br/>', $wod);
+                $wod = explode('<br/><br/>', $wod);
 
                 $date = date('Y-m-d', strtotime($date.'+1 day'));
                 $dateimm = new DateTimeImmutable($date);
                 $temp = [];
 
-//                foreach ($wod as $w) {
-//                    if (!empty($w)) {
-//                        $temp[] = $w;
-//                    }
+                foreach ($wod as $w) {
+                    if (!empty($w)) {
+                        $temp[] = $w;
+                    }
 
                     // if contains "Lift", put in lift records
-//                    if (strstr($w, 'Lift')) {
-//                        $w = trim($w);
+                    if (strstr($w, 'Lift')) {
+                        $w = trim($w);
 
-//                        $lift = str_replace('2.Lift', '', $w);
-//                        $lift = str_replace('2. Lift', '', $w);
+                        $lift = str_replace('Lift', '', $w);
 
-//                        $lift = explode('<br/>', $w);
+                        $lift = explode('<br/>', $w);
 
+                        $exercise = $lift[1];
+                        $rep_scheme = $lift[2];
+                        $comment = $lift[3];
+
+//                        echo '<pre>';
+//                        var_dump($exercise,$rep_scheme,$comment);
+//                        echo '</pre>';
+
+                        // TODO find wodId. Find same date (created_at)
+
+                        $newLiftRecord = new LiftRecord();
+                        $newLiftRecord->setExercise($exercise)
+                            ->setRepScheme($rep_scheme)
+                            ->setComment($comment)
+                            ->setCreatedAt($dateimm);
+
+                        $entityManager->persist($newLiftRecord);
+                        $entityManager->flush();
+                    }
+                }
+                $wod = $temp;
 //echo '<pre>';
-//var_dump($lift);
+//var_dump($wod);
 //echo '</pre>';
 //die;
-//                        $exercise = $lift[1];
-//                        $rep_scheme = $lift[2];
-//                        $comment = $lift[3];
-//
-//                        $newLiftRecord = new LiftRecord();
-//                        $newLiftRecord->setExercise($exercise)
-//                            ->setRepScheme($rep_scheme)
-//                            ->setComment($comment)
-//                            ->setCreatedAt($dateimm);
-
-//                        $entityManager->persist($newLiftRecord);
-//                        $entityManager->flush();
-//                    }
-//                }
-//                $wod = $temp;
                 $newWod = new Wod();
-                $newLiftRecord = new LiftRecord();
+
+//                    $newWods[] =
+//                $newLiftRecord = new LiftRecord();
 
 //                $wod = implode('\n', $wod);
 //                $wod = json_encode($wod);
@@ -199,10 +206,9 @@ unset($textArray[5]);
             $this->redirectToRoute('wod_list');
         }
 
-
-
         return $this->render('wod/import.html.twig', [
-            'secret' => $_ENV['GLOFOX_TOKEN']
+            'secret' => $_ENV['GLOFOX_TOKEN'],
+            'glofox_url' => $_ENV['GLOFOX_URL'],
         ]);
 
     }
