@@ -31,7 +31,7 @@
                                 <div xng-if="!editScore" ng-click="editScore = !editScore">
                                     <div><b>My Score</b><br>{:scores[0].score:}<br>{:scores[0].comments|trustAsHtml:}</div>
                                 </div>
-                                <div ng-if="editScore">
+                                <div xng-if="editScore">
 {#                                    !scores[0].score || #}
                                     <h3>Score</h3>
                                     <div class="form-group">

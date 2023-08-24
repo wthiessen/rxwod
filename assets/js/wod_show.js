@@ -44,8 +44,30 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             $scope.wod = response.data;
 
             var text = $scope.wod.wod;
+            // console.log(text)
+            var wodParts = text.split('<br/><br/>')
 
-            text = text.split('<br/><br/>')
+            angular.forEach(wodParts, function (part) {
+                if (part.includes('Daily Task')) {
+                    var part_lines = part.split('<br/>')
+console.log(part_lines)
+                    angular.forEach(part_lines, function (line) {
+                        if (line.toLowerCase().includes('amrap')) {
+                            $scope.addForm.score = line.toUpperCase();
+                        }
+                        if (line.toUpperCase().startsWith('E')) {
+                            $scope.addForm.score = line.toUpperCase();
+                        }
+                    })
+
+                    // if (part.toLowerCase().includes('amrap')) {
+                    //     $scope.addForm.score = 'AMRAP'
+                    // }
+                    // if (part.toLowerCase().includes('emom')) {
+                    //     $scope.addForm.score = 'EMOM'
+                    // }
+                }
+            });
 
             if (text && !$scope.scores) {
             text = text[2] || '';
@@ -59,6 +81,7 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             }
 
             if (text) {
+                console.log(text)
                 text = text.filter(item => item);
 
                 if (text[0].toLowerCase().includes('emom') || text[0].toLowerCase().includes('amrap')) {

@@ -38,4 +38,13 @@ class WodRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findByCreatedAt($value): ?array
+    {
+        return $this->createQueryBuilder('w')
+            ->where('w.createdAt LIKE ":val%"')
+            ->setParameter('val', $value)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

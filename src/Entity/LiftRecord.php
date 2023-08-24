@@ -16,7 +16,7 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
  *     attributes={"order"={"createdAt": "DESC"}, "pagination_items_per_page"=3},
  * )
  * @ORM\Entity(repositoryClass=LiftRecordRepository::class)
- * @ApiFilter(SearchFilter::class, properties={"exercise": "partial", "wodId": "exact"})
+ * @ApiFilter(SearchFilter::class, properties={"exercise": "exact", "wodId": "exact"})
  */
 class LiftRecord
 {
