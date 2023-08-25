@@ -43,7 +43,7 @@
     },
     "require-dev": {
         "symfony/phpunit-bridge": "^6.3",
-        "symfony/stopwatch": "5.4.*",
+        "symfony/stopwatch": "5.4.*"
     },
     "config": {
         "allow-plugins": {
