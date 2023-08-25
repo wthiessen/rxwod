@@ -96,9 +96,6 @@
     "doctrine/sql-formatter": {
         "version": "1.1.2"
     },
-    "fakerphp/faker": {
-        "version": "v1.23.0"
-    },
     "fig/link-util": {
         "version": "1.1.2"
     },
@@ -482,23 +479,5 @@
     },
     "willdurand/negotiation": {
         "version": "3.0.0"
-    },
-    "zenstruck/assert": {
-        "version": "v1.2.0"
-    },
-    "zenstruck/callback": {
-        "version": "v1.5.0"
-    },
-    "zenstruck/foundry": {
-        "version": "1.23",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "1.10",
-            "ref": "37c2f894cc098ab4c08874b80cccc8e2f8de7976"
-        },
-        "files": [
-            "./config/packages/zenstruck_foundry.yaml"
-        ]
     }
 }
