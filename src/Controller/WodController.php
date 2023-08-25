@@ -15,7 +15,7 @@ use App\Repository\WodRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Entity;
-use Knp\Bundle\MarkdownBundle\MarkdownParserInterface;
+//use Knp\Bundle\MarkdownBundle\MarkdownParserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -54,7 +54,7 @@ class WodController extends AbstractController
     /**
       * @Route("wod/{id<\d+>}", name="app_wod_show")
      */
-    public function show($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository, LiftRecordRepository $liftRecordRepository, MarkdownParserInterface $markdownParser)
+    public function show($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository, LiftRecordRepository $liftRecordRepository)
     {
         /** @var Wod|null $wod */
         $wod = $wodRepository->find($id);
@@ -92,7 +92,7 @@ class WodController extends AbstractController
     /**
       * @Route("wod/edit/{id<\d+>}", name="app_wod_edit")
      */
-    public function edit($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository, MarkdownParserInterface $markdownParser)
+    public function edit($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository)
     {
         /** @var Wod|null $wod */
         $wod = $wodRepository->find($id);
