@@ -1,1 +1,1 @@
-web: heroku-php-apache2 rxwod/
+web: heroku-php-apache2 public/
