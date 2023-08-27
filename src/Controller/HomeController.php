@@ -13,6 +13,6 @@ class HomeController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->redirectToRoute('wod_list');
+        return $this->redirectToRoute('wodlist');
     }
 }

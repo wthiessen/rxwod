@@ -32,7 +32,7 @@ use PhpParser\Builder\Method;
 class WodController extends AbstractController
 {
     /**
-      * @Route("/wod", name="wod_list")
+      * @Route("/wod", name="wodlist")
      */
     public function index(ExerciseRepository $exerciseRepository, WodRepository $wodRepository)
     {
@@ -203,7 +203,7 @@ unset($textArray[5]);
             }
             echo 'done';
 //die;
-            $this->redirectToRoute('wod_list');
+            $this->redirectToRoute('wodlist');
         }
 
         return $this->render('wod/import.html.twig', [
