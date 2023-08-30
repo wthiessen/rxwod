@@ -79,7 +79,7 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             angular.forEach(wodParts, function (part) {
                 if (part.includes('Daily Task')) {
                     var part_lines = part.split('<br/>')
-console.log(part_lines)
+
                     angular.forEach(part_lines, function (line) {
                         if (line.toLowerCase().includes('amrap')) {
                             $scope.addForm.score = line.toUpperCase();
@@ -269,12 +269,36 @@ function rxWodsCtrl(WodService, $scope) {
         window.location.href = WodService.getWodUrl(id);
     }
 
-    $scope.deleteWod = function (id) {
-        WodService.deleteWod(id)
-            .then(function() {
-                $scope.getWods();
-            });
+    $scope.addWod = function () {
+        $http({
+            url: 'api/wods',
+            data: data,
+            method: 'POST',
+        });
+
+        $.ajax({
+            url: newWodUrl,
+            method: 'POST',
+            dataType: 'json',
+            data: JSON.stringify(json),
+            contentType: 'application/json',
+            success: function(result){
+                $('.add-wod').addClass("hidden");
+                $('.js-wod-log-table.hidden:first').removeClass("hidden");
+                $('.add-wod-form').removeClass("hidden");
+                $('.add-wod-form-2').addClass("hidden");
+            },
+            error: function(request,status,errorThrown) {
+            }
+        });
     }
+
+    // $scope.deleteWod = function (id) {
+    //     WodService.deleteWod(id)
+    //         .then(function() {
+    //             $scope.getWods();
+    //         });
+    // }
 }
 
 app.service('WodService', ['$http', WodService]);
@@ -295,8 +319,9 @@ function WodService($http)
     };
 
     this.deleteWod = function (id) {
+        console.log(id)
         return $http({
-            url: this.baseUrl + '/' + id,
+            url: '../../' + this.baseUrl + '/' + id,
             method: 'DELETE',
         });
     }
@@ -325,10 +350,26 @@ function WodService($http)
     // };
 }
 
+app.controller("RxWodEditCtrl", ['$scope', 'WodService', rxWodEditCtrl]);
+
+function rxWodEditCtrl($scope, WodService) {
+    // console.log('rxWodEditCtrl')
+    $scope.deleteWod = function (id) {
+        console.log('deleteWod', id)
+        WodService.deleteWod(id)
+            .then(function() {
+                //are you sure? check for score/lift records
+                window.location = '../';
+            });
+    }
+}
+
 app.controller("rxWodImportCtrl", ['$scope', '$http', '$attrs', wodImportCtrl]);
 
 function wodImportCtrl($scope, $http, $attrs) {
     $scope.content = '';
+    $scope.created = '';
+
 console.log($attrs.glofoxUrl)
     $http({
         url: $attrs.glofoxUrl,
@@ -338,6 +379,14 @@ console.log($attrs.glofoxUrl)
         }
     }).then(function (response) {
         var content = response.data.data[0].content;
+
+        var date = new Date(((response.data.data[0].created * 1000) + (24 * 60 * 60)));
+        var created = new Date(date.getTime() - (date.getTimezoneOffset() * 60000 ))
+            .toISOString()
+            .split("T")[0];
+        console.log(created);
+
+        $scope.created = created;
         $scope.content = content.split('Matt')[1];
     });
 }

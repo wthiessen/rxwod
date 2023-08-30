@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container">
+    <div class="container" ng-app="myApp" ng-controller="RxWodEditCtrl">
         <div class="row">
             <div class="col-12">
                 <div>
@@ -10,7 +10,9 @@
                             <div class="col">
                                 <div class="q-container-show q-display p-3">
                                     <h2>Edit Wod {{ wod.createdAt|date("Y-m-d") }}</h2>
-                                    {{ wod.wod }}
+                                    <div class="btn btn-md btn-success pull-right" ng-click="deleteWod({{ wod.id }})">
+                                        <span class="fa fa-trash"></span> Delete
+                                    </div>
                                     <div class="form-group">
                                         <div class="form-group">
                                             <form class="form-inline js-new-wod-form" novalidate data-url="../../api/wods/{{ wod.id }}">
@@ -32,49 +34,46 @@
         </div>
         <br>
     </div>
-    {% block javascripts %}
-        {{ parent() }}
         <script>
-            $(document).ready(function() {
-                var $table = $('.js-wod-score-table');
+        {#    $(document).ready(function() {#}
+        {#        var $table = $('.js-wod-score-table');#}
 
-                function convertFormToJSON(form) {
-                    const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
-                    const json = {};
-                    $.each(array, function () {
-                        json[this.name] = this.value || "";
-                    });
-                    return json;
-                }
+        {#        function convertFormToJSON(form) {#}
+        {#            const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.#}
+        {#            const json = {};#}
+        {#            $.each(array, function () {#}
+        {#                json[this.name] = this.value || "";#}
+        {#            });#}
+        {#            return json;#}
+        {#        }#}
 
-                $('.js-new-wod-form').unbind('click').find('.btn-primary').on('click', function (e) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
+        {#        $('.js-new-wod-form').unbind('click').find('.btn-primary').on('click', function (e) {#}
+        {#            e.preventDefault();#}
+        {#            e.stopImmediatePropagation();#}
 
-                    var editWodUrl = $(this).closest('form').data('url');
-                    var $form = $(this).closest('form');
+        {#            var editWodUrl = $(this).closest('form').data('url');#}
+        {#            var $form = $(this).closest('form');#}
 
-                    var json = convertFormToJSON($form);
+        {#            var json = convertFormToJSON($form);#}
 
-                    // json.wod = parseInt(json.wod);
-                    // json.rx = json.rx == 'on' ? 1 : 0; // parseInt(json.rx);
+        {#            // json.wod = parseInt(json.wod);#}
+        {#            // json.rx = json.rx == 'on' ? 1 : 0; // parseInt(json.rx);#}
 
-                    // TODO make sure date is not taken
-                    console.log(json,editWodUrl);
+        {#            // TODO make sure date is not taken#}
+        {#            console.log(json,editWodUrl);#}
 
-                    var self = this;
-                    $.ajax({
-                        url: editWodUrl,
-                        method: 'PUT',
-                        dataType: 'json',
-                        data: JSON.stringify(json),
-                        contentType: 'application/json',
-                    }).then(function (data) {
-                        window.location.href = "../../wod/" + data.id;
-                        // window.location.reload();
-                    })
-                });
-            });
+        {#            var self = this;#}
+        {#            $.ajax({#}
+        {#                url: editWodUrl,#}
+        {#                method: 'PUT',#}
+        {#                dataType: 'json',#}
+        {#                data: JSON.stringify(json),#}
+        {#                contentType: 'application/json',#}
+        {#            }).then(function (data) {#}
+        {#                window.location.href = "../../wod/" + data.id;#}
+        {#                // window.location.reload();#}
+        {#            })#}
+        {#        });#}
+        {#    });#}
         </script>
-    {% endblock %}
 {% endblock %}

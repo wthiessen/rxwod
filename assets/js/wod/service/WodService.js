@@ -16,8 +16,9 @@ function WodService($http)
     };
 
     this.deleteWod = function (id) {
+        console.log(id)
         return $http({
-            url: this.baseUrl + '/' + id,
+            url: '../../' + this.baseUrl + '/' + id,
             method: 'DELETE',
         });
     }
