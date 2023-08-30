@@ -27,6 +27,97 @@ var app = angular.module("myApp", [])
 
 })();
 
+app.service('WodService', ['$http', WodService]);
+
+function WodService($http)
+{
+    this.baseUrl = 'api/wods';
+
+    this.getWods = function (page) {
+        return $http({
+            url: this.baseUrl + '.json?page=' + page,
+            method: 'GET',
+        });
+    };
+
+    this.getWodUrl = function (id) {
+        return 'wod/' + id;
+    };
+
+    this.deleteWod = function (id) {
+        console.log(id)
+        return $http({
+            url: '../../' + this.baseUrl + '/' + id,
+            method: 'DELETE',
+        });
+    }
+    //
+    // this.addTag = function (tag) {
+    //     return DataSvc.post(baseUrl, tag);
+    // };
+    //
+    // this.updateTag = function (tag) {
+    //     var url = baseUrl.concat('/', tag.id);
+    //     return DataSvc.patch(url, tag);
+    // };
+    //
+    // this.removeTag = function (tag) {
+    //     var url = baseUrl.concat('/', tag.id);
+    //     return DataSvc.delete(url, tag);
+    // };
+    //
+    // this.checkInUse = function(tag) {
+    //     var url = baseUrl.concat('/', tag.id, '/check_in_use');
+    //     return DataSvc.get(url);
+    // };
+    //
+    // this.getResourceName = function() {
+    //     return 'File Tag';
+    // };
+}
+
+app.controller("RxWodEditCtrl", ['$scope', 'WodService', rxWodEditCtrl]);
+
+function rxWodEditCtrl($scope, WodService) {
+    // console.log('rxWodEditCtrl')
+    $scope.deleteWod = function (id) {
+        console.log('deleteWod', id)
+        WodService.deleteWod(id)
+            .then(function() {
+                //are you sure? check for score/lift records
+                window.location = '../';
+            });
+    }
+}
+
+app.controller("rxWodImportCtrl", ['$scope', '$http', '$attrs', wodImportCtrl]);
+
+function wodImportCtrl($scope, $http, $attrs) {
+    $scope.content = '';
+    $scope.created = '';
+
+console.log($attrs.glofoxUrl)
+    $http({
+        url: $attrs.glofoxUrl,
+        method: 'GET',
+        headers: {
+            Authorization: 'Bearer ' + $attrs.token,
+        }
+    }).then(function (response) {
+        var content = response.data.data[0].content;
+
+        var date = new Date(((response.data.data[0].created * 1000) + (24 * 60 * 60)));
+        var created = new Date(date.getTime() - (date.getTimezoneOffset() * 60000 ))
+            .toISOString()
+            .split("T")[0];
+        console.log(created);
+
+        $scope.created = created;
+        $scope.content = content.split('Matt')[1];
+    });
+}
+
+
 app.controller("RxWodCtrl", function($scope, $attrs, $http) {
     $scope.loadedPage = 1;
     $scope.clickButton = false;
@@ -300,96 +391,5 @@ function rxWodsCtrl(WodService, $scope) {
     //         });
     // }
 }
-
-app.service('WodService', ['$http', WodService]);
-
-function WodService($http)
-{
-    this.baseUrl = 'api/wods';
-
-    this.getWods = function (page) {
-        return $http({
-            url: this.baseUrl + '.json?page=' + page,
-            method: 'GET',
-        });
-    };
-
-    this.getWodUrl = function (id) {
-        return 'wod/' + id;
-    };
-
-    this.deleteWod = function (id) {
-        console.log(id)
-        return $http({
-            url: '../../' + this.baseUrl + '/' + id,
-            method: 'DELETE',
-        });
-    }
-    //
-    // this.addTag = function (tag) {
-    //     return DataSvc.post(baseUrl, tag);
-    // };
-    //
-    // this.updateTag = function (tag) {
-    //     var url = baseUrl.concat('/', tag.id);
-    //     return DataSvc.patch(url, tag);
-    // };
-    //
-    // this.removeTag = function (tag) {
-    //     var url = baseUrl.concat('/', tag.id);
-    //     return DataSvc.delete(url, tag);
-    // };
-    //
-    // this.checkInUse = function(tag) {
-    //     var url = baseUrl.concat('/', tag.id, '/check_in_use');
-    //     return DataSvc.get(url);
-    // };
-    //
-    // this.getResourceName = function() {
-    //     return 'File Tag';
-    // };
-}
-
-app.controller("RxWodEditCtrl", ['$scope', 'WodService', rxWodEditCtrl]);
-
-function rxWodEditCtrl($scope, WodService) {
-    // console.log('rxWodEditCtrl')
-    $scope.deleteWod = function (id) {
-        console.log('deleteWod', id)
-        WodService.deleteWod(id)
-            .then(function() {
-                //are you sure? check for score/lift records
-                window.location = '../';
-            });
-    }
-}
-
-app.controller("rxWodImportCtrl", ['$scope', '$http', '$attrs', wodImportCtrl]);
-
-function wodImportCtrl($scope, $http, $attrs) {
-    $scope.content = '';
-    $scope.created = '';
-
-console.log($attrs.glofoxUrl)
-    $http({
-        url: $attrs.glofoxUrl,
-        method: 'GET',
-        headers: {
-            Authorization: 'Bearer ' + $attrs.token,
-        }
-    }).then(function (response) {
-        var content = response.data.data[0].content;
-
-        var date = new Date(((response.data.data[0].created * 1000) + (24 * 60 * 60)));
-        var created = new Date(date.getTime() - (date.getTimezoneOffset() * 60000 ))
-            .toISOString()
-            .split("T")[0];
-        console.log(created);
-
-        $scope.created = created;
-        $scope.content = content.split('Matt')[1];
-    });
-}
-
 
 })();
