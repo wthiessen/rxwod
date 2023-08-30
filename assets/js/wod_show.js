@@ -50,7 +50,7 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             angular.forEach(wodParts, function (part) {
                 if (part.includes('Daily Task')) {
                     var part_lines = part.split('<br/>')
-console.log(part_lines)
+
                     angular.forEach(part_lines, function (line) {
                         if (line.toLowerCase().includes('amrap')) {
                             $scope.addForm.score = line.toUpperCase();

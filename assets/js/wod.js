@@ -40,10 +40,34 @@ function rxWodsCtrl(WodService, $scope) {
         window.location.href = WodService.getWodUrl(id);
     }
 
-    $scope.deleteWod = function (id) {
-        WodService.deleteWod(id)
-            .then(function() {
-                $scope.getWods();
-            });
+    $scope.addWod = function () {
+        $http({
+            url: 'api/wods',
+            data: data,
+            method: 'POST',
+        });
+
+        $.ajax({
+            url: newWodUrl,
+            method: 'POST',
+            dataType: 'json',
+            data: JSON.stringify(json),
+            contentType: 'application/json',
+            success: function(result){
+                $('.add-wod').addClass("hidden");
+                $('.js-wod-log-table.hidden:first').removeClass("hidden");
+                $('.add-wod-form').removeClass("hidden");
+                $('.add-wod-form-2').addClass("hidden");
+            },
+            error: function(request,status,errorThrown) {
+            }
+        });
     }
+
+    // $scope.deleteWod = function (id) {
+    //     WodService.deleteWod(id)
+    //         .then(function() {
+    //             $scope.getWods();
+    //         });
+    // }
 }
