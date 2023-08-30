@@ -78,7 +78,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator implements A
             return new RedirectResponse($targetPath);
         }
         return new RedirectResponse(
-            $this->router->generate('wodlist')
+            $this->router->generate('wod_list')
         );
 
         // For example:
