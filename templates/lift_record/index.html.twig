@@ -1,7 +1,9 @@
 {% extends 'base.html.twig' %}
-
+{# Create LiftRecord Controllers#}
+{# Create LiftRecord Service#}
+{# Rebuild table#}
 {% block body %}
-    <div class="container">
+    <div class="container" ng-app="myApp" ng-controller="rxLiftRecordCtrl">
         <div class="row">
             <h2>
                 <span class="add-lift-record-form">Lifts</span>
@@ -11,7 +13,7 @@
                 </a>
             </h2>
 
-            <table class="table table-striped js-lift-record-log-table" >
+            <table class="table table-striped" >
                 <thead>
                 <tr>
                     <th>Exercise</th>
@@ -21,149 +23,34 @@
                     <th>Created</th>
                     <th></th>
                 </tr>
-                </thead>S
+                </thead>
                 <tbody>
-                    {% for lift_record in lift_records %}
-                        <tr>
-                            <td><a href="lift_record/edit/{{ lift_record.id }}">{{ lift_record.exercise }}</a></td>
-                            <td>{{ lift_record.repScheme }}</td>
-                            <td>{{ lift_record.weight }}</td>
-                            <td>{{ lift_record.comment }}</td>
+                        <tr ng-repeat="lift_record in lift_records">
+                            <td><a href="lift_record/edit/{: lift_record.id :}">{: lift_record.id :}</a></td>
+                            <td>{: lift_record.exercise :}</td>
+                            <td>{: lift_record.repScheme :}</td>
+                            <td>{: lift_record.weight :}</td>
+                            <td>{: lift_record.comment :}</td>
                             <td></td>
                             <td></td>
                         </tr>
-                    {% endfor %}
                 </tbody>
             </table>
 
             <br>
-            <div class="form-group add-wod hidden">
-                <form class="form-inline js-new-lift-record-form-add" data-url="api/lift_records">
-                    <div><label for="date">Created</label> <input class="createdAt" type="date" name="createdAt" id="createdAt" value="{{ "now"|date("Y-m-d") }}" class="form-control" required></div><br>
-                    <div><label for="exercise">Exercise</label> <input class="exercise" type="text" name="exercise" id="exercise" value="" class="form-control" required></div><br>
-                    <div><label for="repScheme">Rep Scheme</label> <input class="repScheme" type="text" name="repScheme" id="repScheme" value="" class="form-control" required></div><br>
-                    <div><label for="weight">Weight</label> <input class="weight" type="text" name="weight" id="weight" value="" class="form-control" required></div><br>
-                    <div><label for="comment">Comment</label> <input class="comment" type="text" name="comment" id="comment" value="" class="form-control"></div><br>
+            <div class="form-group">
+                <form class="form-inline">
+                    <div><label for="date">Created</label> <input class="createdAt" type="date" name="createdAt" ng-model="newLiftRecord.createdAt" id="createdAt" value="{{ "now"|date("Y-m-d") }}" class="form-control" required></div><br>
+                    <div><label for="exercise">Exercise</label> <input class="exercise" type="text" name="exercise" ng-model="newLiftRecord.exercise" id="exercise" value="" class="form-control" required></div><br>
+                    <div><label for="repScheme">Rep Scheme</label> <input class="repScheme" type="text" name="repScheme" ng-model="newLiftRecord.repScheme" id="repScheme" value="" class="form-control" required></div><br>
+                    <div><label for="weight">Weight</label> <input class="weight" type="text" name="weight" ng-model="newLiftRecord.weight" id="weight" value="" class="form-control" required></div><br>
+                    <div><label for="comment">Comment</label> <input class="comment" type="text" name="comment" ng-model="newLiftRecord.comment" id="comment" value="" class="form-control"></div><br>
                     <br>
-                    <div><div class="btn btn-primary">Submit</div>
+                    <div><div class="btn btn-primary" ng-click="addLiftRecord()">Submit</div>
                 </form>
             </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script>
-        // TODO move to external file
-        // TODO refactor to object
-
-        $(document).ready(function() {
-            var $table = $('.js-lift-record-log-table');
-
-            function convertFormToJSON(form) {
-                const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
-                const json = {};
-                $.each(array, function () {
-                    json[this.name] = this.value || "";
-                });
-                return json;
-            }
-
-            $('.add-lift-record-form').on('click', function (e) {
-                $('.add-wod.hidden:first').removeClass("hidden");
-                $('.js-lift-record-log-table').addClass("hidden");
-                $('.add-lift-record-form').addClass("hidden");
-                $('.add-lift-record-form-2-add').removeClass("hidden");
-                console.log('add wod');
-            });
-
-            // TODO update for Add/Edit
-            $('.js-new-lift-record-form-add').unbind('click').find('.btn-primary').on('click', function (e) {
-                e.preventDefault();
-
-                var newWodUrl = $(this).closest('form').data('url');
-                var $form = $(this).closest('form');
-
-                var json = convertFormToJSON($form);
-                json.weight = parseInt(json.weight);
-                var self = this;
-                $.ajax({
-                    url: newWodUrl,
-                    method: 'POST',
-                    dataType: 'json',
-                    data: JSON.stringify(json),
-                    contentType: 'application/json',
-                    success: function(result){
-                        $table.find('tr').remove();
-                        $table.append('<tr class="loader"><td colspan="6" style="text-align: center;"><span class="loader fa fa-circle-o-notch fa-spin"></span></td></tr>');
-                        loadLiftRecords();
-
-                        $(".js-new-lift-record-form-add")[0].reset();
-
-                        $('.add-wod').addClass("hidden");
-                        $('.js-lift-record-log-table.hidden:first').removeClass("hidden");
-                        $('.add-lift-record-form').removeClass("hidden");
-                        $('.add-lift-record-form-2').addClass("hidden");
-                    },
-                    error: function(request,status,errorThrown) {
-                        console.log(request.responseJSON.violations);
-                    }
-                });
-            });
-
-
-
-            var handleRepLogDelete = function (e) {
-                e.preventDefault();
-                var $link = $(e.currentTarget);
-                var deleteUrl = $link.data('url');
-
-                $link.addClass('text-danger');
-                $link.find('.fa')
-                    .removeClass('fa-trash')
-                    .addClass('fa-spinner')
-                    .addClass('fa-spin');
-
-                var $row = $link.closest('tr');
-                $.ajax({
-                    url: deleteUrl,
-                    method: 'DELETE',
-                }).then(function() {
-                    $row.fadeOut();
-                }).catch(function (arg) {
-                });
-            };
-
-            // console.log($('.fa-trash'));
-
-            var deleteWod = function () {
-                $('.fa-trash').on('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleRepLogDelete(e);
-                });
-            }
-
-            $table.on(
-                'click',
-                'tbody tr',
-                function (e) {
-                    // e.preventDefault();
-                    var $link = $(e.currentTarget);
-                    var wodUrl = $link.data('url');
-
-                    $.ajax({
-                        url: wodUrl,
-                        method: 'GET',
-                    }).then(function(data) {
-                        console.log(data)
-                        $('#exercise').val(data.exercise);
-                        $('#repScheme').val(data.repScheme);
-                        $('#weight').val(data.weight);
-                        $('#comment').val(data.comment);
-                        $('#id').val(data.id);
-                    });
-                }
-            );
-        });
     </script>
 {% endblock %}

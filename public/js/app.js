@@ -25,6 +25,60 @@ var app = angular.module("myApp", [])
 
 
 
+app.controller("rxLiftRecordCtrl", ['LiftService', '$scope', rxLiftRecordCtrl]);
+
+function rxLiftRecordCtrl(LiftService, $scope) {
+    $scope.newLiftRecord = [];
+
+    $scope.getLiftRecords = function() {
+        LiftService.getLiftRecords($scope.loadedPage)
+            .then(function(response) {
+                // console.log(response)
+                $scope.lift_records = response.data;
+            });
+    }
+
+    $scope.addLiftRecord = function() {
+        LiftService.addLiftRecord($scope.newLiftRecord)
+            .then(function(response) {
+                // console.log(response)
+                // $scope.lift_records = response.data;
+            });
+    }
+
+    // newLiftRecord
+    $scope.getLiftRecords();
+}
+
+app.service('LiftService', ['$http', LiftService]);
+
+function LiftService($http)
+{
+    this.baseUrl = 'api/lift_records';
+
+    this.getLiftRecords = function (page) {
+        return $http({
+            url: this.baseUrl,
+            method: 'GET',
+        });
+    };
+
+    this.getLiftRecord = function (id) {
+        return $http({
+            url: this.baseUrl + '/' + id,
+            method: 'GET',
+        });
+    };
+
+    this.addLiftRecord = function (data) {
+        return $http({
+            url: this.baseUrl,
+            data: data,
+            method: 'POST',
+        });
+    };
+}
+
 })();
 
 app.service('WodService', ['$http', WodService]);
@@ -162,6 +216,8 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             method: 'GET',
         }).then(function (response) {
             $scope.wod = response.data;
+
+
 
             var text = $scope.wod.wod;
             // console.log(text)

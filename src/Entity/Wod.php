@@ -92,7 +92,7 @@ class Wod
 
     public function getWod(): ?string
     {
-        return ($this->wod);
+        return nl2br($this->wod);
     }
 
     public function setWod(?string $wod): self

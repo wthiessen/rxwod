@@ -8,7 +8,7 @@ use App\Entity\Wod;
 use App\Repository\LeaderboardRepository;
 use App\Repository\LiftRecordRepository;
 use App\Repository\WodRepository;
-use Knp\Bundle\MarkdownBundle\MarkdownParserInterface;
+//use Knp\Bundle\MarkdownBundle\MarkdownParserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -41,7 +41,7 @@ class LiftRecordController extends AbstractController
     /**
      * @Route("lift_record/edit/{id<\d+>}", name="app_lift_edit")
      */
-    public function edit($id, LiftRecordRepository $liftRecordRepository, MarkdownParserInterface $markdownParser)
+    public function edit($id, LiftRecordRepository $liftRecordRepository)
     {
         /** @var LiftRecord|null $wod */
         $lift_record = $liftRecordRepository->find($id);

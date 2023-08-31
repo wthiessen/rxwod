@@ -13,7 +13,7 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
  *  @ApiResource(
  *     normalizationContext={"groups"={"lift_record:read"}},
  *     denormalizationContext={"groups"={"lift_record:write"}},
- *     attributes={"order"={"createdAt": "DESC"}, "pagination_items_per_page"=3},
+ *     attributes={"order"={"createdAt": "DESC"}},
  * )
  * @ORM\Entity(repositoryClass=LiftRecordRepository::class)
  * @ApiFilter(SearchFilter::class, properties={"exercise": "exact", "wodId": "exact"})
