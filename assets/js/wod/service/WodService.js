@@ -16,10 +16,24 @@ function WodService($http)
     };
 
     this.deleteWod = function (id) {
-        console.log(id)
         return $http({
             url: '../../' + this.baseUrl + '/' + id,
             method: 'DELETE',
+        });
+    }
+
+    this.editWod = function (id, data) {
+        console.log(id)
+        return $http({
+            url: '../../' + this.baseUrl + '/' + id,
+            data: data,
+            method: 'PUT',
+        });
+    }
+    this.getWod = function (id) {
+        return $http({
+            url: '../../' + this.baseUrl + '/' + id,
+            method: 'GET',
         });
     }
     //

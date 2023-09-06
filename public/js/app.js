@@ -99,10 +99,24 @@ function WodService($http)
     };
 
     this.deleteWod = function (id) {
-        console.log(id)
         return $http({
             url: '../../' + this.baseUrl + '/' + id,
             method: 'DELETE',
+        });
+    }
+
+    this.editWod = function (id, data) {
+        console.log(id)
+        return $http({
+            url: '../../' + this.baseUrl + '/' + id,
+            data: data,
+            method: 'PUT',
+        });
+    }
+    this.getWod = function (id) {
+        return $http({
+            url: '../../' + this.baseUrl + '/' + id,
+            method: 'GET',
         });
     }
     //
@@ -130,10 +144,12 @@ function WodService($http)
     // };
 }
 
-app.controller("RxWodEditCtrl", ['$scope', 'WodService', rxWodEditCtrl]);
+app.controller("RxWodEditCtrl", ['$scope', '$attrs', 'WodService', rxWodEditCtrl]);
 
-function rxWodEditCtrl($scope, WodService) {
-    // console.log('rxWodEditCtrl')
+function rxWodEditCtrl($scope, $attrs, WodService) {
+    $scope.wodId = $attrs.wodId;
+    $scope.wod = [];
+
     $scope.deleteWod = function (id) {
         console.log('deleteWod', id)
         WodService.deleteWod(id)
@@ -142,6 +158,31 @@ function rxWodEditCtrl($scope, WodService) {
                 window.location = '../';
             });
     }
+
+    $scope.editWod = function () {
+        var data = $scope.wod;
+        console.log(data)
+        WodService.editWod($scope.wodId, data)
+            .then(function() {
+                //are you sure? check for score/lift records
+                window.location = '../';
+            });
+    }
+
+    
+    $scope.getWod = function () {
+
+
+        WodService.getWod($scope.wodId)
+        .then(function (response) {
+            $scope.wod = response.data;
+
+            $scope.wod.createdAt = $scope.wod.createdAt.split('T')[0]
+        });
+    }
+
+    $scope.getWod();
+
 }
 
 app.controller("rxWodImportCtrl", ['$scope', '$http', '$attrs', wodImportCtrl]);
@@ -216,8 +257,6 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             method: 'GET',
         }).then(function (response) {
             $scope.wod = response.data;
-
-
 
             var text = $scope.wod.wod;
             // console.log(text)

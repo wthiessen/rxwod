@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container" ng-app="myApp" ng-controller="RxWodEditCtrl">
+    <div class="container" ng-app="myApp" ng-controller="RxWodEditCtrl" data-wod-id="{{ wod.id }}">
         <div class="row">
             <div class="col-12">
                 <div>
@@ -9,18 +9,17 @@
                         <div class="row">
                             <div class="col">
                                 <div class="q-container-show q-display p-3">
-                                    <h2>Edit Wod {{ wod.createdAt|date("Y-m-d") }}</h2>
-                                    <div class="btn btn-md btn-success pull-right" ng-click="deleteWod({{ wod.id }})">
+                                    <h2>Edit Wod {:wod.createdAt:}</h2>
+                                    <div class="btn btn-md btn-success pull-right" ng-click="deleteWod({:wod.id:})">
                                         <span class="fa fa-trash"></span> Delete
                                     </div>
                                     <div class="form-group">
                                         <div class="form-group">
-                                            <form class="form-inline js-new-wod-form" novalidate data-url="../../api/wods/{{ wod.id }}">
-                                                <div><label for="date">Date</label> <input type="date" name="createdAt" value="{{ wod.createdAt|date("Y-m-d") }}" class="form-control"></div><br>
-                                                <div><label for="wod">Wod </label> <textarea rows="4" style="width: 33%; height: 300px; display: block; resize: vertical;" name="wod">{{ wod.wod }}</textarea></div>
+                                            <form class="form-inline" novalidate>
+                                                <div><label for="date">Date</label> <input type="date" name="createdAt" value="{:wod.createdAt:}" ng-model="wod.createdAt"></div><br>
+                                                <div><label for="wod">Wod </label> <textarea rows="4" style="width: 33%; height: 300px; display: block; resize: vertical;" ng-model="wod.wod" name="wod"></textarea></div>
                                                 <br>
-                                                <div><div class="btn btn-primary">Submit</div>
-                                                <div><a href="{{ path('app_wod_show', {'id': wod.id}) }}"><div class="btn btn-primary">Cancel</div></a></div>
+                                                <div><div class="btn btn-primary" ng-click="editWod()">Submit</div>
                                             </form>
                                         </div>
 
@@ -34,46 +33,4 @@
         </div>
         <br>
     </div>
-        <script>
-        {#    $(document).ready(function() {#}
-        {#        var $table = $('.js-wod-score-table');#}
-
-        {#        function convertFormToJSON(form) {#}
-        {#            const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.#}
-        {#            const json = {};#}
-        {#            $.each(array, function () {#}
-        {#                json[this.name] = this.value || "";#}
-        {#            });#}
-        {#            return json;#}
-        {#        }#}
-
-        {#        $('.js-new-wod-form').unbind('click').find('.btn-primary').on('click', function (e) {#}
-        {#            e.preventDefault();#}
-        {#            e.stopImmediatePropagation();#}
-
-        {#            var editWodUrl = $(this).closest('form').data('url');#}
-        {#            var $form = $(this).closest('form');#}
-
-        {#            var json = convertFormToJSON($form);#}
-
-        {#            // json.wod = parseInt(json.wod);#}
-        {#            // json.rx = json.rx == 'on' ? 1 : 0; // parseInt(json.rx);#}
-
-        {#            // TODO make sure date is not taken#}
-        {#            console.log(json,editWodUrl);#}
-
-        {#            var self = this;#}
-        {#            $.ajax({#}
-        {#                url: editWodUrl,#}
-        {#                method: 'PUT',#}
-        {#                dataType: 'json',#}
-        {#                data: JSON.stringify(json),#}
-        {#                contentType: 'application/json',#}
-        {#            }).then(function (data) {#}
-        {#                window.location.href = "../../wod/" + data.id;#}
-        {#                // window.location.reload();#}
-        {#            })#}
-        {#        });#}
-        {#    });#}
-        </script>
 {% endblock %}
