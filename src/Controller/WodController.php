@@ -119,9 +119,10 @@ class WodController extends AbstractController
             $textArray = explode("<b>", $wods);
 //            }
 
-unset($textArray[0]);
-$textArray = array_values($textArray);
-unset($textArray[5]);
+            unset($textArray[0]);
+            $textArray = array_values($textArray);
+            unset($textArray[5]);
+            
             $dates = array();
             $weekdays = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday');
 
@@ -155,22 +156,22 @@ unset($textArray[5]);
                     }
 
                     // if contains "Lift", put in lift records
-                    if (strstr($w, 'Lift')) {
+                    if (strstr($w, 'Lift') || strstr($w, 'Press')) {
                         $w = trim($w);
 
-                        $lift = str_replace('Lift', '', $w);
+                        if (strstr($w, 'Lift')) {
+                            $lift = str_replace('Lift', '', $w);
+                        }
+
+                        if (strstr($w, 'Press')) {
+                            $lift = str_replace('Press', '', $w);
+                        }
 
                         $lift = explode('<br/>', $w);
 
                         $exercise = $lift[1];
                         $rep_scheme = $lift[2];
                         $comment = $lift[3];
-
-//                        echo '<pre>';
-//                        var_dump($exercise,$rep_scheme,$comment);
-//                        echo '</pre>';
-
-                        // TODO find wodId. Find same date (created_at)
 
                         $newLiftRecord = new LiftRecord();
                         $newLiftRecord->setExercise($exercise)
@@ -183,17 +184,10 @@ unset($textArray[5]);
                     }
                 }
                 $wod = $temp;
-//echo '<pre>';
-//var_dump($wod);
-//echo '</pre>';
-//die;
+
                 $newWod = new Wod();
 
-//                    $newWods[] =
-//                $newLiftRecord = new LiftRecord();
-
                 $wod = implode('<br/><br/>', $wod);
-//                $wod = json_encode($wod);
 
                 $newWod->setWod($wod)
                     ->setCreatedAt($dateimm);
@@ -202,7 +196,6 @@ unset($textArray[5]);
                 $entityManager->flush();
             }
             echo 'done';
-//die;
             $this->redirectToRoute('wod_list');
         }
 
