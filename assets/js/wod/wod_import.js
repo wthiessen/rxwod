@@ -21,7 +21,7 @@ console.log($attrs.glofoxUrl)
         console.log(created);
 
         $scope.created = created;
-        $scope.content = content.split('Matt')[1];
+        $scope.content = content.split('Your Coach')[1];
     });
 }
 

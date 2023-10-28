@@ -1,10 +1,15 @@
 app.controller("rxWodsCtrl", ['WodService', '$scope', rxWodsCtrl]);
 
 function rxWodsCtrl(WodService, $scope) {
-
-    console.log('wodjs');
-
     $scope.loadedPage = 1;
+
+    var today = new Date();//.toISOString().slice(0, 10)
+    
+    $scope.newWod = {
+        'createdAt': today
+    };
+    
+    // console.log($scope.newWod)
 
     $scope.nextPage = function () {
         if ($scope.loadedPage > 1) {
@@ -41,27 +46,11 @@ function rxWodsCtrl(WodService, $scope) {
     }
 
     $scope.addWod = function () {
-        $http({
-            url: 'api/wods',
-            data: data,
-            method: 'POST',
-        });
-
-        $.ajax({
-            url: newWodUrl,
-            method: 'POST',
-            dataType: 'json',
-            data: JSON.stringify(json),
-            contentType: 'application/json',
-            success: function(result){
-                $('.add-wod').addClass("hidden");
-                $('.js-wod-log-table.hidden:first').removeClass("hidden");
-                $('.add-wod-form').removeClass("hidden");
-                $('.add-wod-form-2').addClass("hidden");
-            },
-            error: function(request,status,errorThrown) {
-            }
-        });
+        WodService.addWod($scope.newWod)
+            .then(function(response) {
+                console.log(response)
+                $scope.getWods();
+            });        
     }
 
     // $scope.deleteWod = function (id) {

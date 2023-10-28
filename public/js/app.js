@@ -113,35 +113,21 @@ function WodService($http)
             method: 'PUT',
         });
     }
+
+    this.addWod = function (data) {
+        return $http({
+            url: '../../' + this.baseUrl,
+            data: data,
+            method: 'POST',
+        });
+    }
+
     this.getWod = function (id) {
         return $http({
             url: '../../' + this.baseUrl + '/' + id,
             method: 'GET',
         });
     }
-    //
-    // this.addTag = function (tag) {
-    //     return DataSvc.post(baseUrl, tag);
-    // };
-    //
-    // this.updateTag = function (tag) {
-    //     var url = baseUrl.concat('/', tag.id);
-    //     return DataSvc.patch(url, tag);
-    // };
-    //
-    // this.removeTag = function (tag) {
-    //     var url = baseUrl.concat('/', tag.id);
-    //     return DataSvc.delete(url, tag);
-    // };
-    //
-    // this.checkInUse = function(tag) {
-    //     var url = baseUrl.concat('/', tag.id, '/check_in_use');
-    //     return DataSvc.get(url);
-    // };
-    //
-    // this.getResourceName = function() {
-    //     return 'File Tag';
-    // };
 }
 
 app.controller("RxWodEditCtrl", ['$scope', '$attrs', 'WodService', rxWodEditCtrl]);
@@ -208,7 +194,7 @@ console.log($attrs.glofoxUrl)
         console.log(created);
 
         $scope.created = created;
-        $scope.content = content.split('Matt')[1];
+        $scope.content = content.split('Your Coach')[1];
     });
 }
 
@@ -416,10 +402,15 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
 app.controller("rxWodsCtrl", ['WodService', '$scope', rxWodsCtrl]);
 
 function rxWodsCtrl(WodService, $scope) {
-
-    console.log('wodjs');
-
     $scope.loadedPage = 1;
+
+    var today = new Date();//.toISOString().slice(0, 10)
+    
+    $scope.newWod = {
+        'createdAt': today
+    };
+    
+    // console.log($scope.newWod)
 
     $scope.nextPage = function () {
         if ($scope.loadedPage > 1) {
@@ -456,27 +447,11 @@ function rxWodsCtrl(WodService, $scope) {
     }
 
     $scope.addWod = function () {
-        $http({
-            url: 'api/wods',
-            data: data,
-            method: 'POST',
-        });
-
-        $.ajax({
-            url: newWodUrl,
-            method: 'POST',
-            dataType: 'json',
-            data: JSON.stringify(json),
-            contentType: 'application/json',
-            success: function(result){
-                $('.add-wod').addClass("hidden");
-                $('.js-wod-log-table.hidden:first').removeClass("hidden");
-                $('.add-wod-form').removeClass("hidden");
-                $('.add-wod-form-2').addClass("hidden");
-            },
-            error: function(request,status,errorThrown) {
-            }
-        });
+        WodService.addWod($scope.newWod)
+            .then(function(response) {
+                console.log(response)
+                $scope.getWods();
+            });        
     }
 
     // $scope.deleteWod = function (id) {

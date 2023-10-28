@@ -30,33 +30,19 @@ function WodService($http)
             method: 'PUT',
         });
     }
+
+    this.addWod = function (data) {
+        return $http({
+            url: '../../' + this.baseUrl,
+            data: data,
+            method: 'POST',
+        });
+    }
+
     this.getWod = function (id) {
         return $http({
             url: '../../' + this.baseUrl + '/' + id,
             method: 'GET',
         });
     }
-    //
-    // this.addTag = function (tag) {
-    //     return DataSvc.post(baseUrl, tag);
-    // };
-    //
-    // this.updateTag = function (tag) {
-    //     var url = baseUrl.concat('/', tag.id);
-    //     return DataSvc.patch(url, tag);
-    // };
-    //
-    // this.removeTag = function (tag) {
-    //     var url = baseUrl.concat('/', tag.id);
-    //     return DataSvc.delete(url, tag);
-    // };
-    //
-    // this.checkInUse = function(tag) {
-    //     var url = baseUrl.concat('/', tag.id, '/check_in_use');
-    //     return DataSvc.get(url);
-    // };
-    //
-    // this.getResourceName = function() {
-    //     return 'File Tag';
-    // };
 }
