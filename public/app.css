@@ -117,6 +117,14 @@ fieldset[disabled] .btn-question.active {
     border-color: #D45B3F;
 }
 
+tr:hover {
+    background:red;
+}
+
+li:hover {
+    cursor: grab;
+  }
+
 .btn-question .badge {
     color: #ED7458;
     background-color: #FFFFFF;

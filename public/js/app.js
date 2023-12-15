@@ -106,7 +106,6 @@ function WodService($http)
     }
 
     this.editWod = function (id, data) {
-        console.log(id)
         return $http({
             url: '../../' + this.baseUrl + '/' + id,
             data: data,
@@ -136,9 +135,8 @@ function rxWodEditCtrl($scope, $attrs, WodService) {
     $scope.wodId = $attrs.wodId;
     $scope.wod = [];
 
-    $scope.deleteWod = function (id) {
-        console.log('deleteWod', id)
-        WodService.deleteWod(id)
+    $scope.deleteWod = function () {
+        WodService.deleteWod($scope.wodId)
             .then(function() {
                 //are you sure? check for score/lift records
                 window.location = '../';
@@ -147,7 +145,7 @@ function rxWodEditCtrl($scope, $attrs, WodService) {
 
     $scope.editWod = function () {
         var data = $scope.wod;
-        console.log(data)
+
         WodService.editWod($scope.wodId, data)
             .then(function() {
                 //are you sure? check for score/lift records
@@ -157,18 +155,16 @@ function rxWodEditCtrl($scope, $attrs, WodService) {
 
     
     $scope.getWod = function () {
-
-
         WodService.getWod($scope.wodId)
         .then(function (response) {
             $scope.wod = response.data;
-
-            $scope.wod.createdAt = $scope.wod.createdAt.split('T')[0]
+            $scope.wod.wod = $scope.wod.wod.replaceAll("<br />", '');
+            $scope.wod.wod = $scope.wod.wod.replaceAll("<br/>", '\n');
+            $scope.wod.createdAt = new Date($scope.wod.createdAt);
         });
     }
 
     $scope.getWod();
-
 }
 
 app.controller("rxWodImportCtrl", ['$scope', '$http', '$attrs', wodImportCtrl]);
@@ -191,10 +187,15 @@ console.log($attrs.glofoxUrl)
         var created = new Date(date.getTime() - (date.getTimezoneOffset() * 60000 ))
             .toISOString()
             .split("T")[0];
-        console.log(created);
+        // console.log(created);
 
         $scope.created = created;
-        $scope.content = content.split('Your Coach')[1];
+        $scope.content = $scope.content.trim();
+        $scope.content = content.split('Matt</p><p>')[1];
+        // $scope.content = $scope.content.replaceAll("<br/>", '\n');
+        // $scope.content = $scope.content.replace("\n", '');
+        $scope.content = $scope.content.replace(/<[^>]*>?/gm, '');
+        $scope.content = $scope.content.split('See you all for a fun filled weekend workout!!')[0];
     });
 }
 
@@ -231,7 +232,6 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             url: '../api/lift_records.json?exercise=' + ex[1],
             method: 'GET',
         }).then(function(response) {
-            console.log(response)
             $scope.lift_history = response.data;
         });
         }
@@ -245,7 +245,6 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             $scope.wod = response.data;
 
             var text = $scope.wod.wod;
-            // console.log(text)
             var wodParts = text.split('<br/><br/>')
 
             angular.forEach(wodParts, function (part) {
@@ -295,7 +294,6 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             }
         }
 
-            // console.log(text);
             $scope.getLeaderboard();
             $scope.getLiftRecordsFor();
         });
@@ -404,14 +402,12 @@ app.controller("rxWodsCtrl", ['WodService', '$scope', rxWodsCtrl]);
 function rxWodsCtrl(WodService, $scope) {
     $scope.loadedPage = 1;
 
-    var today = new Date();//.toISOString().slice(0, 10)
+    var today = new Date();
     
     $scope.newWod = {
         'createdAt': today
     };
     
-    // console.log($scope.newWod)
-
     $scope.nextPage = function () {
         if ($scope.loadedPage > 1) {
             $scope.loadedPage++;
@@ -449,17 +445,19 @@ function rxWodsCtrl(WodService, $scope) {
     $scope.addWod = function () {
         WodService.addWod($scope.newWod)
             .then(function(response) {
-                console.log(response)
                 $scope.getWods();
             });        
     }
 
-    // $scope.deleteWod = function (id) {
-    //     WodService.deleteWod(id)
-    //         .then(function() {
-    //             $scope.getWods();
-    //         });
-    // }
+    $scope.deleteWod = function ($event, id) {
+        $event.preventDefault();
+        $event.stopPropagation();
+
+        WodService.deleteWod(id)
+            .then(function() {
+                $scope.getWods();
+            });
+    }
 }
 
 })();

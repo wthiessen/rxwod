@@ -18,10 +18,15 @@ console.log($attrs.glofoxUrl)
         var created = new Date(date.getTime() - (date.getTimezoneOffset() * 60000 ))
             .toISOString()
             .split("T")[0];
-        console.log(created);
+        // console.log(created);
 
         $scope.created = created;
-        $scope.content = content.split('Your Coach')[1];
+        $scope.content = $scope.content.trim();
+        $scope.content = content.split('Matt</p><p>')[1];
+        // $scope.content = $scope.content.replaceAll("<br/>", '\n');
+        // $scope.content = $scope.content.replace("\n", '');
+        $scope.content = $scope.content.replace(/<[^>]*>?/gm, '');
+        $scope.content = $scope.content.split('See you all for a fun filled weekend workout!!')[0];
     });
 }
 

@@ -9,7 +9,7 @@
                         <div class="col-md-9">
                             <span>
                                 <h2>
-                                   Wod {{ wod.createdAt|date("Y-m-d") }}
+                                   Wod <span ng-bind="wod.createdAt | date:'MM/dd/yyyy'"></span>
 
                                 <a href="edit/{{ wod.id }}" class="btn btn-md btn-success pull-right">
                                     <span class="fa fa-edit"></span> Edit
@@ -33,6 +33,7 @@
                                 </div>
                                 <div xng-if="editScore">
 {#                                    !scores[0].score || #}
+                                    <br><br>
                                     <h3>Score</h3>
                                     <div class="form-group">
                                         <form class="form-inline">

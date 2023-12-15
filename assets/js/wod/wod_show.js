@@ -30,7 +30,6 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             url: '../api/lift_records.json?exercise=' + ex[1],
             method: 'GET',
         }).then(function(response) {
-            console.log(response)
             $scope.lift_history = response.data;
         });
         }
@@ -44,7 +43,6 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             $scope.wod = response.data;
 
             var text = $scope.wod.wod;
-            // console.log(text)
             var wodParts = text.split('<br/><br/>')
 
             angular.forEach(wodParts, function (part) {
@@ -94,7 +92,6 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
             }
         }
 
-            // console.log(text);
             $scope.getLeaderboard();
             $scope.getLiftRecordsFor();
         });

@@ -23,7 +23,6 @@ function WodService($http)
     }
 
     this.editWod = function (id, data) {
-        console.log(id)
         return $http({
             url: '../../' + this.baseUrl + '/' + id,
             data: data,

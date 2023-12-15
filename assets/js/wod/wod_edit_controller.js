@@ -4,9 +4,8 @@ function rxWodEditCtrl($scope, $attrs, WodService) {
     $scope.wodId = $attrs.wodId;
     $scope.wod = [];
 
-    $scope.deleteWod = function (id) {
-        console.log('deleteWod', id)
-        WodService.deleteWod(id)
+    $scope.deleteWod = function () {
+        WodService.deleteWod($scope.wodId)
             .then(function() {
                 //are you sure? check for score/lift records
                 window.location = '../';
@@ -15,7 +14,7 @@ function rxWodEditCtrl($scope, $attrs, WodService) {
 
     $scope.editWod = function () {
         var data = $scope.wod;
-        console.log(data)
+
         WodService.editWod($scope.wodId, data)
             .then(function() {
                 //are you sure? check for score/lift records
@@ -25,16 +24,14 @@ function rxWodEditCtrl($scope, $attrs, WodService) {
 
     
     $scope.getWod = function () {
-
-
         WodService.getWod($scope.wodId)
         .then(function (response) {
             $scope.wod = response.data;
-
-            $scope.wod.createdAt = $scope.wod.createdAt.split('T')[0]
+            $scope.wod.wod = $scope.wod.wod.replaceAll("<br />", '');
+            $scope.wod.wod = $scope.wod.wod.replaceAll("<br/>", '\n');
+            $scope.wod.createdAt = new Date($scope.wod.createdAt);
         });
     }
 
     $scope.getWod();
-
 }

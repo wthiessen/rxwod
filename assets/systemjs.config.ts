@@ -1,0 +1,1 @@
+'@angular/upgrade/static': 'npm:@angular/upgrade/fesm2022/static.mjs',

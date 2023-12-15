@@ -1,9 +1,5 @@
 <?php
 
-// TODO for time, rounds
-// TODO weight Male/Female Rx
-// TODO Rest time
-
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
@@ -21,8 +17,6 @@ use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
 
 /**
  * @ApiResource(
- *     normalizationContext={"groups"={"wod:read"}},
- *     denormalizationContext={"groups"={"wod:write"}},
  *     attributes={"order"={"createdAt": "DESC"}, "pagination_items_per_page"=10}
  * )
  * @ORM\Entity(repositoryClass=WodRepository::class)
@@ -102,13 +96,13 @@ class Wod
         return $this;
     }
 
-    /*
-     * @SerializedName("wod")
-     */
-    public function getTextWod(?string $wod): self
-    {
-        $this->wod = nl2br($wod);
+    // /*
+    //  * @SerializedName("wod")
+    //  */
+    // public function getTextWod(?string $wod): self
+    // {
+    //     $this->wod = nl2br($wod);
 
-        return $this;
-    }
+    //     return $this;
+    // }
 }

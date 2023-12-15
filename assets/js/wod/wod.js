@@ -3,14 +3,12 @@ app.controller("rxWodsCtrl", ['WodService', '$scope', rxWodsCtrl]);
 function rxWodsCtrl(WodService, $scope) {
     $scope.loadedPage = 1;
 
-    var today = new Date();//.toISOString().slice(0, 10)
+    var today = new Date();
     
     $scope.newWod = {
         'createdAt': today
     };
     
-    // console.log($scope.newWod)
-
     $scope.nextPage = function () {
         if ($scope.loadedPage > 1) {
             $scope.loadedPage++;
@@ -48,15 +46,17 @@ function rxWodsCtrl(WodService, $scope) {
     $scope.addWod = function () {
         WodService.addWod($scope.newWod)
             .then(function(response) {
-                console.log(response)
                 $scope.getWods();
             });        
     }
 
-    // $scope.deleteWod = function (id) {
-    //     WodService.deleteWod(id)
-    //         .then(function() {
-    //             $scope.getWods();
-    //         });
-    // }
+    $scope.deleteWod = function ($event, id) {
+        $event.preventDefault();
+        $event.stopPropagation();
+
+        WodService.deleteWod(id)
+            .then(function() {
+                $scope.getWods();
+            });
+    }
 }
