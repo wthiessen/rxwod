@@ -2,25 +2,25 @@
 
 namespace App\Repository;
 
-use App\Entity\Leaderboard;
+use App\Entity\Score;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @method Leaderboard|null find($id, $lockMode = null, $lockVersion = null)
- * @method Leaderboard|null findOneBy(array $criteria, array $orderBy = null)
- * @method Leaderboard[]    findAll()
- * @method Leaderboard[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Score|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Score|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Score[]    findAll()
+ * @method Score[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class LeaderboardRepository extends ServiceEntityRepository
+class ScoreRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Leaderboard::class);
+        parent::__construct($registry, Score::class);
     }
 
     /**
-     * @return Leaderboard[] Returns an array of Leaderboard objects
+     * @return Score[] Returns an array of Score objects
      */
     public function findByDateCreated($value)
     {
@@ -37,14 +37,13 @@ class LeaderboardRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return Leaderboard[] Returns an array of Leaderboard objects
+     * @return Score[] Returns an array of Score objects
      */
     public function findByWodId($value)
     {
         $data = $this->createQueryBuilder('l')
             ->andWhere('l.wod = :val')
             ->setParameter('val', $value)
-            ->orderBy('l.rx', 'DESC')
             ->orderBy('l.score', 'ASC')
             ->getQuery()
             ->getResult()
@@ -54,7 +53,7 @@ class LeaderboardRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return Leaderboard[] Returns an array of Leaderboard objects
+     * @return Score[] Returns an array of Score objects
      */
     public function findAllNames()
     {

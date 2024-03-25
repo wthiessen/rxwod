@@ -2,27 +2,19 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
-use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use JsonSerializable;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @ApiResource(
- *     normalizationContext={"groups"={"user:read"}},
- *     denormalizationContext={"groups"={"user:write"}},
- * )
- * @UniqueEntity(fields={"username"})
- * @UniqueEntity(fields={"email"})
- * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @ORM\Entity()
  */
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements JsonSerializable, UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
      * @ORM\Id
@@ -33,11 +25,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
-     * @Groups({"user:read", "user:write"})
      * @Assert\NotBlank()
      * @Assert\Email()
      */
     private $email;
+
+    private $name;
 
     /**
      * @ORM\Column(type="json")
@@ -47,26 +40,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
-     * @Groups({"user:write"})
      */
     private $password;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
-     * @Groups({"user:read", "user:write", "wod:read"})
      * @Assert\NotBlank()
      */
     private $username;
 
     /**
      * @ORM\OneToMany(targetEntity=Wod::class, mappedBy="owner", cascade={"persist"}, orphanRemoval=true)
-//     * @ORM\JoinColumn(nullable=false)
-     * @Groups({"user:read", "user:write"})
      */
     private $wods;
 
     public function __construct()
     {
+        // $this->scores = new ArrayCollection();
         $this->wods = new ArrayCollection();
     }
 
@@ -174,25 +164,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->wods;
     }
 
-    public function addWod(Wod $wod): self
+    public function getName(): ?string
     {
-        if (!$this->wods->contains($wod)) {
-            $this->wods[] = $wod;
-            $wod->setOwner($this);
-        }
-
-        return $this;
+        return $this->name;
     }
 
-    public function removeWod(Wod $wod): self
+    public function jsonSerialize(): array
     {
-        if ($this->wods->removeElement($wod)) {
-            // set the owning side to null (unless already changed)
-            if ($wod->getOwner() === $this) {
-                $wod->setOwner(null);
-            }
-        }
-
-        return $this;
+        return [
+            'id' => $this->getId(),
+            'name' => $this->getName(),
+        ];
     }
 }

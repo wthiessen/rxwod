@@ -1,4 +1,6 @@
-app.controller("RxWodCtrl", function($scope, $attrs, $http) {
+app.controller("RxWodCtrl", ['$scope', '$attrs', '$http', 'WodService','LiftRecordService', 'LeaderboardService', rxWodCtrl]);
+
+function rxWodCtrl ($scope, $attrs, $http, wodService, LiftRecordService, LeaderboardService) {
     $scope.loadedPage = 1;
     $scope.clickButton = false;
     $scope.lift_record = [];
@@ -6,149 +8,139 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
     $scope.editScore = false;
     $scope.wod = [];
     $scope.addForm = [];
+    $scope.editLift = false;
+    $scope.wodTypes = [];
+    $scope.addScore = {};
+    $scope.score = {};
+    $scope.amrap = false;
+    $scope.time = false;
+    $scope.emom = false;
+    $scope.addScore.commentsArray = [];
 
     $scope.wodHasLift = false;
     $scope.todaysWod = '';
 
-    $scope.getLiftRecordsFor = function () {
-        var text = $scope.wod.wod;
-        text = text.split('<br/><br/>')
+    $scope.lift_record_from_wod = [];
 
-        var ex = '';
-        if (text) {
-        if (text[1]) {
-            ex = text[1].split('<br/>') || '';
-        }
-
-        if (ex[0]) {
-            $scope.wodHasLift = ex[0].includes('Lift');
-        }
-    }
-
-    if ($scope.wodHasLift) {
-        $http({
-            url: '../api/lift_records.json?exercise=' + ex[1],
-            method: 'GET',
-        }).then(function(response) {
-            $scope.lift_history = response.data;
-        });
-        }
-    }
-
-    $scope.getWod = function () {
-        $http({
-            url: '../api/wods/' + $attrs.wodId,
-            method: 'GET',
-        }).then(function (response) {
-            $scope.wod = response.data;
-
-            var text = $scope.wod.wod;
-            var wodParts = text.split('<br/><br/>')
-
-            angular.forEach(wodParts, function (part) {
-                if (part.includes('Daily Task')) {
-                    var part_lines = part.split('<br/>')
-
-                    angular.forEach(part_lines, function (line) {
-                        if (line.toLowerCase().includes('amrap')) {
-                            $scope.addForm.score = line.toUpperCase();
-                        }
-                        if (line.toUpperCase().startsWith('E')) {
-                            $scope.addForm.score = line.toUpperCase();
-                        }
-                    })
-
-                    // if (part.toLowerCase().includes('amrap')) {
-                    //     $scope.addForm.score = 'AMRAP'
-                    // }
-                    // if (part.toLowerCase().includes('emom')) {
-                    //     $scope.addForm.score = 'EMOM'
-                    // }
-                }
+    $scope.getLiftRecordFromWod = function() {
+        LiftRecordService.getLiftDataFromWod($scope.wod.id)
+            .then(function(response) {
+                $scope.lift_record_from_wod = response.data;
             });
-
-            if (text && !$scope.scores) {
-            text = text[2] || '';
-
-            if (text) {
-                text = text.split('Daily Task')[1]
-            }
-
-            if (text) {
-                text = text.split('<br/>')
-            }
-
-            if (text) {
-                console.log(text)
-                text = text.filter(item => item);
-
-                if (text[0].toLowerCase().includes('emom') || text[0].toLowerCase().includes('amrap')) {
-                    $scope.addForm.score = text[0].toUpperCase();
-                    text.splice(0, 1)
+    }
+    
+    $scope.getWod = function () {
+        wodService.getWod($attrs.wodId)
+            .then(function (response) {
+                $scope.wod = response.data;
+            
+                if (response.data.scores[0]) {
+                    $scope.score = response.data.scores[0];
                 }
 
+                $scope.getLiftRecordsByWodFor();
+                $scope.updateScore();
 
-                $scope.addForm.comments = text.join('\n');
-            }
-        }
+                $scope.scores = response.data.scores;
+            });
+    }
 
-            $scope.getLeaderboard();
-            $scope.getLiftRecordsFor();
-        });
+    $scope.getComment = function(value) {
+        $scope.addScore.commentsArray.push(value);
+        console.log(value, $scope.addScore.commentsArray)
+        $scope.addScore.comments = $scope.addScore.commentsArray.join('\n');
     }
 
     $scope.getWod();
 
-    $scope.score = {};
+    $scope.updateScore = function() {
+        $scope.amrap = $scope.wod.type == 'AMRAP';
+        $scope.emom = $scope.wod.type == 'EMOM';
 
-    $scope.getLeaderboard = function () {
-        $http({
-            url: '../api/leaderboards.json?wod=' + $attrs.wodId,
-            method: 'GET',
-        }).then(function (response) {
-            $scope.getLiftRecordsByWodFor();
-
-            // if (response.data) {
-            //     $scope.addForm.comments = $scope.scores[0];
-            // }
-
-            $scope.scores = response.data;
-        });
-    }
-
-    $scope.addScore = function () {
-        // score.wod = $attrs.wodId
-
-        var data = {
-            wod: parseInt($attrs.wodId),
-            name: 'Will',//score.name,
-            score: $scope.addForm.score,
-            comments: $scope.addForm.comments,
+        if ($scope.wod.type == 'AMRAP') {
+            $scope.addScore.score ={
+                'rounds': null,
+                'reps': null,
+            }
         }
 
-        $http({
-            url: '../api/leaderboards',
-            data: data,
-            method: 'POST',
-        }).then(function (response) {
-            $scope.getLeaderboard();
-        });
+        if ($scope.wod.type == 'EMOM') {
+            // $scope.addScore.score = $scope.wod.class[2][1];
+        }
+
+        $scope.time = $scope.wod.type == 'Time';
+
+        if ($scope.wod.type == 'Time') {
+            $scope.addScore.score ={
+                'time': null,
+            }
+        }
     }
 
+    $scope.updateScore();
+
+    $scope.getScore = function(e, score) {
+        e.stopPropagation();
+        $scope.addScore = angular.copy(score);
+        // $scope.addScore.score = $scope.wod.class[2][1];
+    }
+
+    $scope.addScoreFunc = function () {
+
+        if ($scope.addScore.id) {
+            if ($scope.wod.type =- 'EMOM') {
+                // $scope.addScore.score = 'EMOM';
+            }
+
+            var data = {
+                id: $scope.addScore.id,
+                wod_id: parseInt($attrs.wodId),
+                user_id: 6, // TODO update get user
+                score: JSON.stringify($scope.addScore.score),
+                comments: $scope.addScore.comments,
+            }
+
+            LeaderboardService.editScore(data)
+            .then(function (response) {
+                $scope.addScore = {};
+                $scope.getWod();
+            });
+
+            return;
+        }
+
+        var data = {
+            wod_id: parseInt($attrs.wodId),
+            user_id: 6, // TODO update get user
+            score: JSON.stringify($scope.addScore.score),
+            comments: $scope.addScore.comments,
+        }
+
+        LeaderboardService.addScore(data)
+            .then(function (response) {
+                $scope.addScore = {};
+                $scope.getWod();
+            });
+    }
+
+    $scope.clear = function() {
+        $scope.addScore = {};
+    }
+    
     $scope.editWodScore = function () {
         var data = {
-            score: $scope.addForm.score,
-            comments: $scope.addForm.comments,
+            id: $scope.score.id,
+            wod_id: parseInt($attrs.wodId),
+            user_id: 6, // TODO update get user
+            score: JSON.stringify($scope.score.score),
+            comments: $scope.score.comments,
         }
 
-        $http({
-            url: '../api/leaderboards/' + $scope.scores[0].id,
-            data: data,
-            method: 'PUT',
-        }).then(function(response) {
-            $scope.getLeaderboard();
-            $scope.editScore = false;
-        });
+        LeaderboardService.editScore(data)
+            .then(function() {
+                $scope.getWod();
+                $scope.editScore = false;
+            });
     }
 
     $scope.showLifts = false;
@@ -165,12 +157,27 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
     }
 
     $scope.getLiftRecordsByWodFor = function () {
-        $http({
-            url: '../api/lift_records.json?wodId=' + $attrs.wodId,
-            method: 'GET',
-        }).then(function(response) {
-            $scope.lift_record = response.data;
-        });
+        LiftRecordService.getLiftRecordsByWodFor($attrs.wodId)
+            .then(function(response) {
+                $scope.lift_record = response.data[0];
+                if (!$scope.lift_record) {
+                    if ($scope.wod.class[1]) {
+                        $scope.lift_record_from_wod.exercise = angular.copy($scope.wod.class[1][1]);
+                        $scope.lift_record_from_wod.repScheme = angular.copy($scope.wod.class[1][2]);
+                        var skill = angular.copy($scope.wod.class[1]);
+                        if (skill) {
+                            console.log(skill)
+                            // skill.splice(0, 1);
+                            // skill.splice(0, 1);
+                            // skill.splice(0, 1);
+                            // $scope.lift_record_from_wod.comment = skill.join('\n');
+                        }
+
+                        $scope.lift_record_from_wod.weight = null;
+                    }
+                }
+                $scope.lift_update = angular.copy($scope.lift_record);
+            });
     }
 
     $scope.showScoreEdit = false;
@@ -179,18 +186,55 @@ app.controller("RxWodCtrl", function($scope, $attrs, $http) {
         $scope.showScoreEdit = !$scope.showScoreEdit;
     }
 
-    $scope.addLiftScore = function () {
+    $scope.toggleLiftEdit = function() {
+        $scope.editLift = !$scope.editLift;
+    }
+
+    $scope.editLiftScore = function () {
         var data = {
-            weight: parseInt($scope.lift_record[0].weight),
-            wodId: parseInt($attrs.wodId),
+            wod_id: parseInt($scope.wod.id),
+            exercise: $scope.lift_record_from_wod.exercise,
+            rep_scheme: $scope.lift_record_from_wod.repScheme,
+            comment: $scope.lift_record_from_wod.comment,
+            weight: parseInt($scope.lift_update.weight),
+            id: parseInt($scope.lift_record.id),
         }
 
-        $http({
-            url: '../../api/lift_records/' + $scope.lift_history[0].id,
-            data: data,
-            method: 'PUT',
-        }).then(function (response) {
-            $scope.getLiftRecordsByWodFor();
-        });
+        LiftRecordService.editLiftRecord(data)
+            .then(function() {
+                $scope.toggleLiftEdit();
+                $scope.getLiftRecordsByWodFor($attrs.wodId);
+            });
     }
-});
+
+    $scope.addLift = function() {
+        $scope.lift_record_from_wod.wodId = $scope.wod.id;
+        
+        var data = {
+            wod_id: parseInt($scope.wod.id),
+            exercise: $scope.lift_record_from_wod.exercise,
+            rep_scheme: $scope.lift_record_from_wod.repScheme,
+            comment: $scope.lift_record_from_wod.comment,
+            weight: null
+        }
+
+        LiftRecordService.addLiftRecord(data)
+            .then(function(response) {
+                $scope.lift_records = response.data;
+                $scope.getLiftRecordsByWodFor();
+                console.log('saved lift')
+            });
+    }
+
+    $scope.getWodTypes = function() {
+        wodService.getWodTypes()
+        .then(function(response) {
+            // console.log(response);
+            $scope.wodTypes = response.data;
+            // $scope.addForm.type = 'AMRAP';
+        })
+    }
+
+    $scope.getWodTypes();
+
+}

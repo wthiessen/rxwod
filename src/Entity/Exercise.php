@@ -3,17 +3,16 @@
 namespace App\Entity;
 
 use App\Repository\ExerciseRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @ORM\Entity(repositoryClass=ExerciseRepository::class)
+ * @ORM\Entity()
  */
+// repositoryClass=ExerciseRepository::class
 class Exercise extends AbstractController
 {
     /**
@@ -29,21 +28,23 @@ class Exercise extends AbstractController
     private $name;
 
     /**
-     * @ORM\Column(type="datetime_immutable")
+     * @ORM\Column(type="datetime")
      */
     private $createdAt;
 
     /**
      * @ORM\ManyToOne(targetEntity=ExerciseType::class, inversedBy="exercises")
-     * @ORM\JoinColumn(nullable=false)
      */
     private $type;
 
-    public function __construct()
+    public function __construct(string $name, ExerciseType $type, DateTime $createdAt)
     {
+        $this->name = $name;
+        $this->type = $type;
+        $this->createdAt = $createdAt;
     }
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
@@ -53,34 +54,13 @@ class Exercise extends AbstractController
         return $this->name;
     }
 
-    public function setName(string $name): self
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): DateTime
     {
         return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
     }
 
     public function getType(): ?ExerciseType
     {
         return $this->type;
-    }
-
-    public function setType(?ExerciseType $type): self
-    {
-        $this->type = $type;
-
-        return $this;
     }
 }

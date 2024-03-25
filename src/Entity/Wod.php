@@ -2,57 +2,78 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiFilter;
-use ApiPlatform\Core\Annotation\ApiResource;
-use App\Repository\UserRepository;
-use App\Repository\WodRepository;
-use DateTimeImmutable;
+use Doctrine\ORM\Mapping as ORM;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\RangeFilter;
-use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
+use JsonSerializable;
 
 /**
- * @ApiResource(
- *     attributes={"order"={"createdAt": "DESC"}, "pagination_items_per_page"=10}
- * )
- * @ORM\Entity(repositoryClass=WodRepository::class)
- * @ApiFilter(SearchFilter::class, properties={"createdAt": "partial"})
+ * @ORM\Entity(repositoryClass="App\Repository\WodRepository")
  */
-class Wod
+class Wod implements JsonSerializable
 {
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"wod:read"})
      */
-    private $id;
+    private int $id;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"wod:read", "wod:write", "user:write"})
      */
-    private $name;
+    private ?string $name = null;
 
     /**
-     * @ORM\Column(type="datetime_immutable")
-     * @Groups({"wod:read", "wod:write"})
+     * @ORM\Column(type="string", length=1000)
+     */
+    private ?string $wod;
+
+    /**
+     * @ORM\Column(type="string")
+     */
+    private ?string $type;
+
+    /**
+    * @var Collection|Score[]
+    * @ORM\OneToMany(targetEntity="Score", mappedBy="wod", cascade={"persist", "remove"}, orphanRemoval=true)
+    */
+    private $scores;
+
+    /**
+     * @ORM\Column(type="datetime")
      */
     private $createdAt;
 
     /**
-     * @ORM\Column(type="string", length=1000)
-     * @Groups({"wod:read", "wod:write", "user:write"})
+     * @ORM\Column(type="datetime")
      */
-    private $wod;
+    private $wodDate;
 
-    public function __construct()
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $updatedOn;
+
+    // todo add static create
+    // todo move to domain layer
+
+    public function __construct(?string $wod, ?string $type, ?string $wodDate)
     {
-//        $this->createdAt = new DateTimeImmutable();
+        $this->type = $this->getWodTypeFromWodString($wod) ?? 'Time';
+        $this->wod = $wod;
+        $this->wodDate = new DateTime($wodDate);
+        $this->createdAt = new DateTime();
+        $this->scores = new ArrayCollection();
+    }
+
+    public function update(?string $wod, ?string $type, ?string $wodDate)
+    {
+        $this->type = $type;
+        $this->wod = $wod;
+        $this->wodDate = new DateTime($wodDate);
+        $this->updatedOn = new DateTime();
     }
 
     public function getId(): ?int
@@ -65,44 +86,106 @@ class Wod
         return $this->name;
     }
 
-    public function setName(?string $name): self
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(DateTimeImmutable $createdAt): self
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
     public function getWod(): ?string
     {
         return nl2br($this->wod);
     }
-
-    public function setWod(?string $wod): self
+	
+    public function getClassAsArray(): ?array
     {
-        $this->wod = $wod;
+        $input = $this->wod;
 
-        return $this;
+        $results = preg_split("/(\r\n|\n|\r)/",$input);
+        // dd($results);
+        if (count($results) == 1) {
+            $results = explode("<br />",$input);
+        }
+
+        if (count($results) == 4) {
+            unset($results[0]);
+        }
+
+        $wod = [];
+        $i = 0;
+
+        foreach ($results as $line) {
+            // and next line starts with a number ie 1.
+            if ($line === '') {
+                $i++; // if the line is empty, advance array index
+                continue;
+            }
+
+            $wod[$i][] = trim($line);
+        }
+
+        return $wod;
+    }
+	
+	public function getWodBr(): ?string
+	{
+		return $this->wod;
+	}
+
+    public function getCreatedAt(): ?DateTime
+    {
+        return $this->createdAt;
     }
 
-    // /*
-    //  * @SerializedName("wod")
-    //  */
-    // public function getTextWod(?string $wod): self
-    // {
-    //     $this->wod = nl2br($wod);
+    public function getUpdatedOn(): ?DateTime
+    {
+        return $this->updatedOn;
+    }
 
-    //     return $this;
-    // }
+    public function getWodDate(): ?DateTime
+    {
+        return $this->wodDate ?? $this->createdAt;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    /** @return Collection|Wod[] */
+    public function getScores(): iterable
+    {
+        return $this->scores;
+    }
+
+    private function getWodTypeFromWodString($wod): ?string
+    {
+        $temp = explode('Daily Task', $wod);
+
+        if (count($temp) > 1) {
+            $array = preg_split ('/$\R?^/m', $temp[1]);
+
+            foreach ($array as $a) {
+                if ($a[0] == 'E' && strstr($a, 'M')) {
+                    return 'EMOM';
+                }
+                if (strstr($a, 'AMRAP')) {
+                    return 'AMRAP';
+                }
+                if (strstr($a, 'Time')) {
+                    return 'Time';
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'wod' => $this->wod,
+            'type' => $this->type,
+            'scores' => $this->scores->toArray(),
+            'wodDate' => $this->getWodDate() ? $this->getWodDate()->format('Y-m-d') : null,
+            'createdAt' => $this->getCreatedAt() ? $this->getCreatedAt()->format('Y-m-d') : null,
+            'updatedOn' => $this->getUpdatedOn() ? $this->getUpdatedOn()->format('Y-m-d') : null,
+            'class' => $this->getClassAsArray(),
+        ];
+    }
 }

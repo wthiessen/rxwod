@@ -19,6 +19,14 @@ class WodRepository extends ServiceEntityRepository
         parent::__construct($registry, Wod::class);
     }
 
+    public function findAllWods(): ?array
+    {
+        return $this->createQueryBuilder('w')
+            ->orderBy('w.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findOneNextId($value): ?Wod
     {
         return $this->createQueryBuilder('w')
@@ -46,5 +54,4 @@ class WodRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-
 }

@@ -19,14 +19,14 @@ console.log($attrs.glofoxUrl)
             .toISOString()
             .split("T")[0];
         // console.log(created);
-
+console.log(content)
         $scope.created = created;
-        $scope.content = $scope.content.trim();
-        $scope.content = content.split('Matt</p><p>')[1];
-        // $scope.content = $scope.content.replaceAll("<br/>", '\n');
-        // $scope.content = $scope.content.replace("\n", '');
-        $scope.content = $scope.content.replace(/<[^>]*>?/gm, '');
-        $scope.content = $scope.content.split('See you all for a fun filled weekend workout!!')[0];
+        content = content.trim();
+        // content = content.split('See you at the gym!')[1];
+        content = content.replaceAll("<br/>", '\n');
+        // content = content.replace("\n", '');
+        // content = content.replace(/<[^>]*>?/gm, '');
+        $scope.content = content; //split('See you all for a fun filled weekend workout!!')[0];
     });
 }
 

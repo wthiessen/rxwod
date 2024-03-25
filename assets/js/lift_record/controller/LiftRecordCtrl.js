@@ -1,6 +1,6 @@
-app.controller("rxLiftRecordCtrl", ['LiftService', '$scope', rxLiftRecordCtrl]);
+app.controller("rxLiftRecordCtrl", ['$scope', rxLiftRecordCtrl]);
 
-function rxLiftRecordCtrl(LiftService, $scope) {
+function rxLiftRecordCtrl($scope) {
     $scope.newLiftRecord = [];
 
     $scope.getLiftRecords = function() {
@@ -11,7 +11,7 @@ function rxLiftRecordCtrl(LiftService, $scope) {
             });
     }
 
-    $scope.addLiftRecord = function() {
+    $scope.addLift = function() {
         LiftService.addLiftRecord($scope.newLiftRecord)
             .then(function(response) {
                 // console.log(response)

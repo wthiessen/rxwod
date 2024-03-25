@@ -9,7 +9,7 @@
                         <div class="col-md-9">
                             <span>
                                 <h2>
-                                   Wod <span ng-bind="wod.createdAt | date:'MM/dd/yyyy'"></span>
+                                   <span ng-bind="wod.wodDate"></span>
 
                                 <a href="edit/{{ wod.id }}" class="btn btn-md btn-success pull-right">
                                     <span class="fa fa-edit"></span> Edit
@@ -23,56 +23,118 @@
 
                                 </h2>
                             </span>
-                            <div class="col-md-3">
-                                <h3>WOD</h3>
-                                <span ng-bind-html="wod.wod|trustAsHtml"></span>
-                                <br>
-{#                                ng-if="scores"#}
-                                <div xng-if="!editScore" ng-click="editScore = !editScore">
-                                    <div><b>My Score</b><br>{:scores[0].score:}<br>{:scores[0].comments|trustAsHtml:}</div>
+                            <div class="col-md-5">
+                            {# {:wod.class:} #}
+                                <span ng-repeat="part in wod.class" >
+                                    <span ng-repeat="p in part track by $index">
+                                        <span ng-click="getComment(p)" ng-bind="p | trustAsHtml"></span>
+                                        <br>
+                                    </span>
+                                    <br>
+                                </span>
+
+                                <input ng-if="wod.class[1][0] == 'Lift' || wod.class[1][0] == 'Press Cycle' || wod.class[1][0] == 'Olympic Lifting'" type="button" ng-click="showLiftSection = !showLiftSection" value="Show Lift Import">
+                                <div xng-show="showLiftSection">
+                                    <hr>
+                                    Exercise: <input type="text" ng-model="lift_record_from_wod.exercise"><br>
+                                    Rep Scheme: <input type="text" ng-model="lift_record_from_wod.repScheme"><br>
+                                    Comments: <textarea ng-model="lift_record_from_wod.comment" cols="25" rows="6"></textarea>
+                                    <br>
+                                    <span class="btn btn-primary" ng-click="addLift()">Add Lift</span>
+                                    <br><br>
                                 </div>
-                                <div xng-if="editScore">
-{#                                    !scores[0].score || #}
+                                <div ng-if="lift_record.exercise" ng-hide="!lift_record_from_wod">
+                                    <div><label for="weight">Lift Weight:</label> <span ng-click="toggleLiftEdit()">{:lift_record.weight:}</span>
+                                        <input type="text" xng-hide="!editLift || !lift_record.weight" ng-model="lift_update.weight" width="5" xng-change="showButton = true">
+                                        <button type="button" xng-hide="!editLift || !lift_record.weight" class="btn btn-primary" ng-click="editLiftScore()">Save</button><br>
+                                        Exercise: {:lift_record.exercise|trustAsHtml:}<br>
+                                        Rep Scheme: {:lift_record.rep_scheme|trustAsHtml:}<br>
+                                        Comments: {:lift_record.comment|trustAsHtml:}<br>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div ng-show="scores.length">
+                                    <div><b>My Score</b><br>
+                                        <div ng-repeat="score in scores">
+                                            <span><a href="" ng-click="getScore($event, score)">{:score.comments:}</a></span>
+                                            <div ng-repeat="s in score">
+                                                <span ng-show="s.rounds">Rounds:{:s.rounds:}</span>
+                                                <span ng-show="s.reps">Reps:{:s.reps:}</span>
+                                                <span ng-show="s.time">Time:{:s.time:}</span>
+                                            </div>
+                                        </div>
+                                    </div>    
+                                </div>
+                                <input type="button" ng-click="showScoreSection = !showScoreSection" value="Add Score">
+                                <div ng-show="showScoreSection">
                                     <br><br>
                                     <h3>Score</h3>
                                     <div class="form-group">
                                         <form class="form-inline">
                                             <input type="hidden" name="date" value="{{ "now"|date("Y-m-d") }}" class="form-control">
-                                            <input type="hidden" name="name" placeholder="Name" value="Will" class="form-control">
                                             <table class="table table-stripe" >
                                                 <tr>
                                                     <td><label for="time">Score</label></td>
-                                                    <td><input type="text" name="score" placeholder="Score" ng-model="addForm.score" class="form-control" required></td>
+                                                    <td>
+                                                        <input ng-show="emom" type="text" placeholder="EMOM" ng-model="addScore.score">
+                                                        <input ng-show="time" type="text" placeholder="Score" ng-model="addScore.score.time">
+                                                        <input ng-show="amrap" type="text" placeholder="Rounds" ng-model="addScore.score.rounds">
+                                                        <input ng-show="amrap" type="text" placeholder="Reps" ng-model="addScore.score.reps">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label for="time">Type</label></td>
+                                                    <td align="left">
+                                                        <ul>
+                                                            <select ng-model="wod.type" ng-change="updateScore()">
+                                                                <option ng-repeat="type in wodTypes" ng-selected="type == wod.type">{:type:}</option>
+                                                            </select>
+                                                        </ul>
+                                                    </td>
+                                                    {# TODO add option for more than one wod #}
                                                 </tr>
                                                 <tr>
                                                     <td> <label for="comments">Comments</label></td>
-                                                    <td><textarea name="comments" ng-model="addForm.comments;" cols="25" rows="6"></textarea></td>
+                                                    <td><textarea name="comments" ng-model="addScore.comments;" cols="25" rows="6"></textarea></td>
                                                 </tr>
                                                 {#                                                    <td  style="vertical-align: middle;"><label for="rx">Rx</label></td>#}
                                                 {#                                                    <td style="vertical-align: middle;"><input type="checkbox" ng-model="score.rx" name="rx" class="form-control"></td>#}
                                             </table>
 
-                                            <input type="hidden" name="wod" ng-model="score.wod" value="{{ wod.id }}" class="form-control">
-                                            <div ng-show="!scores[0].id" class="btn btn-primary" ng-click="addScore()">Add</div>
-                                            <div ng-show="scores[0].id" class="btn btn-primary" ng-click="editWodScore()">Edit</div>
-{#                                            <div><div class="btn btn-primary" ng-click="scores[0].ID ? editScore() : addScore(score)">Edit</div>#}
+                                            <input type="hidden" name="wod" ng-model="addScore.wod" value="{{ wod.id }}" class="form-control">
+                                            <div class="btn btn-primary" ng-click="addScoreFunc()">Save</div>
+                                            <div class="btn btn-secondary" ng-click="clear()">Clear</div>
                                         </form>
                                     </div>
                                 </div>
 
-                                <div ng-if="wodHasLift">
-                                    <div><label for="weight">Lift Weight:</label>
-                                        <span ng-show="!showScoreEdit" ng-click="showLiftScoreEdit()" ng-bind="lift_record[0].weight"></span>
-                                        <input xng-show="showScoreEdit" type="text" ng-model="lift_record[0].weight" width="10">
-                                    </div><br>
-                                    <div><div xng-show="showScoreEdit" class="btn btn-primary" ng-click="addLiftScore()">Submit</div>
-{#                                    <div><div xng-show="showScoreEdit" class="btn btn-primary" ng-click="editLiftScore()">Submit</div>#}
-                                </div>
-{#                                <br>#}
-<!--                                <span ng-click="enterScore()" ng-bind-html="wod.wod[2]|trustAsHtml"></span>-->
                             </div>
                             <div >
-                                <div ng-if="wodHasLift">
+                                <div ng-show="scores.length">
+                                    <h3>Scores</h3>
+                                    <table class="table">
+                                        <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Score</th>
+                                            <th>Comments</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr ng-repeat="score in scores">
+                                            <td>{:score.name:}</td>
+                                            <td>
+                                                <div ng-repeat="s in score">
+                                                    <span ng-show="s.rounds">Rounds:{:s.rounds:}</span> <span ng-show="s.reps">Reps:{:s.reps:}</span>
+                                                    <span ng-show="s.time">Time:{:s.time:}</span>
+                                                </div>
+                                            </td>
+                                            <td>{:score.comments:}</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {# <div ng-if="wodHasLift">
                                     <h3>Lift History</h3>
                                     <table class="table">
                                         <thead>
@@ -93,7 +155,7 @@
                                         </tr>
                                         </tbody>
                                     </table>
-                                </div>
+                                </div> #}
 
 
                             </div>

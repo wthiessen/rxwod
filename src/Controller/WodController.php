@@ -2,65 +2,70 @@
 
 namespace App\Controller;
 
-use App\Entity\Exercise;
-use App\Entity\Leaderboard;
+use App\Application\Command\CreateWod;
+use App\Entity\Score;
 use App\Entity\LiftRecord;
 use App\Entity\Wod;
-use App\Repository\ExerciseRepository;
-use App\Repository\ExerciseTypeRepository;
-use App\Repository\LeaderboardRepository;
+use App\Repository\ScoreRepository;
 use App\Repository\LiftRecordRepository;
-use App\Repository\UserRepository;
 use App\Repository\WodRepository;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\Entity;
-//use Knp\Bundle\MarkdownBundle\MarkdownParserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use DateTime;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
-use DateTimeImmutable;
-use DateInterval;
-use PhpParser\Builder\Method;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class WodController extends AbstractController
 {
     /**
       * @Route("/wod", name="wod_list")
      */
-    public function index(ExerciseRepository $exerciseRepository, WodRepository $wodRepository)
+    public function index()
     {
         return $this->render('wod/index.html.twig', [
             'wods' => [],
         ]);
     }
 
-    /**
-      * @Route("/wodnew", name="wod_angular")
-     */
-    public function wodnew(ExerciseRepository $exerciseRepository, WodRepository $wodRepository)
-    {
-        return $this->render('wod/index.html', [
-//            'wods' => [],
-        ]);
-    }
 
     /**
-      * @Route("wod/{id<\d+>}", name="app_wod_show")
+      * @Route("/api2/wod/{id<\d+>}", name="app_get_wod", methods={"GET"})
      */
-    public function show($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository, LiftRecordRepository $liftRecordRepository)
+    public function getWod($id, WodRepository $wodRepository)
     {
         /** @var Wod|null $wod */
         $wod = $wodRepository->find($id);
 
-        /** @var Leaderboard|null $leaderboard */
-        $userNames = $leaderboardRepository->findAllNames();
+        return new JsonResponse($wod);
+        // return [];
+    }    
+
+    /**
+      * @Route("/api2/wods", name="app_get_all_wod", methods={"GET"})
+     */
+    public function getAllWods(WodRepository $wodRepository)
+    {
+        // /** @var Wod|null $wod */
+        $wods = $wodRepository->findAllWods();
+// dd($wods);
+        // $wods = [];
+
+        return new JsonResponse($wods);
+    }    
+
+
+    /**
+      * @Route("wod/{id<\d+>}", name="app_wod_show", methods={"GET"})
+     */
+    public function show($id, WodRepository $wodRepository, ScoreRepository $scoreRepository, LiftRecordRepository $liftRecordRepository)
+    {
+        /** @var Wod|null $wod */
+        $wod = $wodRepository->find($id);
+
+        /** @var Score|null $score */
+        $userNames = $scoreRepository->findAllNames();
 
         $names = [];
         foreach ($userNames as $name) {
@@ -92,18 +97,79 @@ class WodController extends AbstractController
     /**
       * @Route("wod/edit/{id<\d+>}", name="app_wod_edit")
      */
-    public function edit($id, WodRepository $wodRepository, LeaderboardRepository $leaderboardRepository)
+    public function edit($id, WodRepository $wodRepository, ScoreRepository $scoreRepository)
     {
         /** @var Wod|null $wod */
         $wod = $wodRepository->find($id);
 
-        /** @var Leaderboard|null $leaderboard */
-        $leaderboard = $leaderboardRepository->findByWodId($id);
+        /** @var Score|null $score */
+        $score = $scoreRepository->findByWodId($id);
 
         return $this->render('wod/edit.html.twig', [
             'wod' => $wod,
-            'leaderboard' => $leaderboard,
+            'leaderboard' => $score,
         ]);
+    }
+
+    /**
+      * @Route("/api2/wod/{id<\d+>}", name="app_wod_editapi", methods={"PUT"})
+     */
+    public function editApi($id, Request $request, EntityManagerInterface $entityManager, WodRepository $wodRepository): JsonResponse
+    {
+        /** @var Wod|null $wod */
+        $wod = $wodRepository->find($id);
+
+        $data = json_decode($request->getContent(),true);
+
+        // TODO add method to get Daily Task workout type (AMRAP, EMOM, Time, etc)
+
+
+        $wod->update(
+            $data['wod'],
+            $data['type'],
+            $data['wodDate'],
+        );
+
+        $entityManager->persist($wod);
+        $entityManager->flush();
+// dd($wod);
+        return $this->json('ok');
+    }
+
+    /**
+      * @Route("/api/wods/{id<\d+>}", methods={"DELETE"})
+     */
+    public function delete($id, Request $request, EntityManagerInterface $entityManager, WodRepository $wodRepository): JsonResponse
+    {
+        /** @var Wod|null $wod */
+        $wod = $wodRepository->find($id);
+
+        $entityManager->remove($wod);
+
+        // $entityManager->persist($wod);
+        $entityManager->flush();
+// dd($wod);
+        return $this->json('ok');
+    }
+
+    /**
+      * @Route("/api2/wods", methods={"POST"})
+     */
+    public function addApi(Request $request, EntityManagerInterface $entityManager, MessageBusInterface $messageBus): JsonResponse
+    {
+        $data = json_decode($request->getContent(),true);
+
+		$type = '';
+
+        if (!isset($data['type'])) {
+            $type = "Time";
+        }
+
+        $messageBus->dispatch(new CreateWod(
+            $data['wod'], $type, $data['wodDate']
+        ));
+
+		return $this->json('ok added wod');
     }
 
     /**
@@ -111,90 +177,84 @@ class WodController extends AbstractController
      */
     public function import(EntityManagerInterface $entityManager, WodRepository $wodRepository, LiftRecordRepository $liftRecordRepository, Request $request)
     {
+        // $input = '<b>Hi-Performance(Wednesday)</b>
+        // 1. Warm Up
+        // 3rds
+        // 6 PVC Pass Through 
+        // 6 PVC OHS 
+        // 6 PVC Sotts Press 
+        // 6 PVC Duck Walk 
+        // 6 PVC Backwards Duck Walk 
+        
+        // 2. Barbell Conditioning
+        // E1.5M7.5
+        // 5 TNG Power Clean &amp; Jerks 
+        // 5 Lateral Burpee Over Bar 
+        
+        // 3. Daily Task
+        // 6rds
+        // 3 Power Snatch 115/85
+        // 6 OHS
+        // 9 C2B';
+        
+        
+        // $results = preg_split('/\s*\d+\.+\s+/i', $input);
+
+
+        // $result = $matches[1];
+        // dd($results);
         if ($request->isMethod('post')) {
             $createdAt = $request->request->get('createdAt');
-            $wods = $request->request->get('wod');
+            $wods = trim($request->request->get('wod'));
 
-//            $textArray = explode("Matt", $wods);
+            // $wods = explode('The RX Gym Team', $wods);
+            // $wods = explode('Matt', $wods);
+
+            
+            // if (!isset($wods[1])) {
+                //     return $this->json('Failed Import');
+                // }
+                
+
             $textArray = explode("<b>", $wods);
+            // $textArray = explode("<strong>", $wods[1]);
 //            }
-
+// dd($textArray);
             unset($textArray[0]);
             $textArray = array_values($textArray);
             unset($textArray[5]);
-            
-            $dates = array();
-            $weekdays = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday');
-
+            $weekdays = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
             $wods = [];
             $date = $createdAt;
-//echo '<pre>';
-//dd($textArray);
-//echo '</pre>';
-//die;
+
             foreach ($textArray as $key => $wod) {
+
+
                 foreach ($weekdays as $wd_key => $weekday) {
-                    $wod = str_replace('</b>', '', $wod);
-                    $wods[$weekdays[$key]] = $wod;
+                    if (!strpos($wod, $weekday)) {
+                        continue;
+                    }
+
+                    $wod = str_replace('</strong>', '', $wod);
+
+
+                    $wods[$weekdays[$key]]['wod'] = $wod;
                 }
             }
+
 
             $dateimm = '';
             $last_date = '';
-            $date = date('Y-m-d', strtotime($date. '-1 day'));
-
+            $date = date('Y-m-d', strtotime($date.'-1 day'));
+            $newDate = $date;
             foreach ($wods as $day => $wod) {
-                $wod = explode('<br/><br/>', $wod);
-
-                $date = date('Y-m-d', strtotime($date.'+1 day'));
-                $dateimm = new DateTimeImmutable($date);
-                $temp = [];
-
-                foreach ($wod as $w) {
-                    if (!empty($w)) {
-                        $temp[] = $w;
-                    }
-
-                    // if contains "Lift", put in lift records
-                    if (strstr($w, 'Lift') || strstr($w, 'Press')) {
-                        $w = trim($w);
-
-                        if (strstr($w, 'Lift')) {
-                            $lift = str_replace('Lift', '', $w);
-                        }
-
-                        if (strstr($w, 'Press')) {
-                            $lift = str_replace('Press', '', $w);
-                        }
-
-                        $lift = explode('<br/>', $w);
-
-                        $exercise = $lift[1];
-                        $rep_scheme = $lift[2];
-                        $comment = $lift[3];
-
-                        $newLiftRecord = new LiftRecord();
-                        $newLiftRecord->setExercise($exercise)
-                            ->setRepScheme($rep_scheme)
-                            ->setComment($comment)
-                            ->setCreatedAt($dateimm);
-
-                        $entityManager->persist($newLiftRecord);
-                        $entityManager->flush();
-                    }
-                }
-                $wod = $temp;
-
-                $newWod = new Wod();
-
-                $wod = implode('<br/><br/>', $wod);
-
-                $newWod->setWod($wod)
-                    ->setCreatedAt($dateimm);
-
+                $newDate = date('Y-m-d', strtotime($newDate.'+1 day'));
+                $newWod = new Wod($wod['wod'], $newDate);
+// dump($newWod);
                 $entityManager->persist($newWod);
                 $entityManager->flush();
             }
+
             echo 'done';
             $this->redirectToRoute('wod_list');
         }
@@ -203,6 +263,5 @@ class WodController extends AbstractController
             'secret' => $_ENV['GLOFOX_TOKEN'],
             'glofox_url' => $_ENV['GLOFOX_URL'],
         ]);
-
     }
 }

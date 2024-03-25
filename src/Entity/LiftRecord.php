@@ -2,23 +2,15 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiResource;
-use App\Repository\LiftRecordRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
-use ApiPlatform\Core\Annotation\ApiFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use DateTime;
+use JsonSerializable;
 
 /**
- *  @ApiResource(
- *     normalizationContext={"groups"={"lift_record:read"}},
- *     denormalizationContext={"groups"={"lift_record:write"}},
- *     attributes={"order"={"createdAt": "DESC"}},
- * )
  * @ORM\Entity(repositoryClass=LiftRecordRepository::class)
- * @ApiFilter(SearchFilter::class, properties={"exercise": "exact", "wodId": "exact"})
  */
-class LiftRecord
+class LiftRecord implements JsonSerializable
 {
     /**
      * @ORM\Id
@@ -30,43 +22,46 @@ class LiftRecord
 
     /**
      * @ORM\Column(type="integer", nullable=true)
-     * @Groups({"lift_record:read", "lift_record:write"})
      */
-    private $weight;
+    private ?int $weight = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
-     * @Groups({"lift_record:read", "lift_record:write"})
      */
     private $wodId;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"lift_record:read", "lift_record:write"})
      */
     private $exercise;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     * @Groups({"lift_record:read", "lift_record:write"})
      */
-    private $repScheme;
+    private string $repScheme;
 
     /**
-     * @ORM\Column(type="datetime_immutable")
-     * @Groups({"lift_record:read", "lift_record:write"})
+     * @ORM\Column(type="datetime")
      */
     private $createdAt;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     * @Groups({"lift_record:read", "lift_record:write"})
      */
-    private $comment;
+    private ?string $comment;
 
-    public function __construct()
+    public function __construct(int $wodId, string $exercise, string $repScheme, ?string $comment = null, ?int $weight = null)
     {
-        $this->createdAt = new \DateTimeImmutable();
+        // $exercise, $repScheme, $comment = '', $wodId
+        // $this->id = $id;
+        $this->repScheme = $repScheme;
+        $this->exercise = $exercise;
+        $this->weight = $weight ?? null;
+        $this->comment = $comment;
+        $this->wodId = $wodId;
+        // if (!$id) {
+            $this->createdAt = new DateTime();
+        // }
     }
 
     public function getId(): ?int
@@ -74,16 +69,9 @@ class LiftRecord
         return $this->id;
     }
 
-    public function getExercise(): ?string
+    public function getWodId(): ?string
     {
-        return $this->exercise;
-    }
-
-    public function setExercise(string $exercise): self
-    {
-        $this->exercise = $exercise;
-
-        return $this;
+        return $this->wodId;
     }
 
     public function getRepScheme(): ?string
@@ -91,11 +79,9 @@ class LiftRecord
         return $this->repScheme;
     }
 
-    public function setRepScheme(string $repScheme): self
+    public function getExercise(): ?string
     {
-        $this->repScheme = $repScheme;
-
-        return $this;
+        return $this->exercise;
     }
 
     public function getWeight(): ?int
@@ -103,23 +89,9 @@ class LiftRecord
         return $this->weight;
     }
 
-    public function setWeight(int $weight): self
-    {
-        $this->weight = $weight;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?\DateTime
     {
         return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
     }
 
     public function getComment(): ?string
@@ -127,27 +99,14 @@ class LiftRecord
         return $this->comment;
     }
 
-    public function setComment(?string $comment): self
+    public function jsonSerialize(): array
     {
-        $this->comment = $comment;
-
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getWodId(): int
-    {
-        return $this->wodId;
-    }
-
-    /**
-     */
-    public function setWodId(?int $wodId): int
-    {
-        $this->wodId = $wodId;
-
-        return $wodId;
+        return [
+            'id' => $this->getId(),
+            'weight' => $this->getWeight(),
+            'comment' => $this->getComment(),
+            'rep_scheme' => $this->getRepScheme(),
+            'exercise' => $this->getExercise(),
+        ];
     }
 }
